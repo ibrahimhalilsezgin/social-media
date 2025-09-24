@@ -79,6 +79,7 @@ class userController {
           biography: user.biography,
           followers: user.followers,
           following: user.following,
+          posts: user.posts,
           private: user.private,
           created: user.created,
           createdAt: user.createdAt,
@@ -86,6 +87,46 @@ class userController {
           verified: user.verified
       });
     };
+    async getUserFromUsername(req:Request, res:Response) {
+      const {username} = req.body;
+
+      const user = await userModel.findOne({ username });
+
+      if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+
+      if(user.private) {
+        return res.status(200).json({
+          id: user.id,
+          username: user.username,
+          profilePhoto: user.profilePhoto,
+          biography: user.biography,
+          followers: user.followers.length,
+          following: user.following.length,
+          posts: user.posts.length,
+          private: user.private,
+          created: user.created,
+          createdAt: user.createdAt,
+          status: user.status,
+          verified: user.verified
+        });
+      } else {
+          return res.status(200).json({
+            id: user.id,
+            username: user.username,
+            profilePhoto: user.profilePhoto,
+            biography: user.biography,
+            followers: user.followers,
+            following: user.following,
+            posts: user.posts,
+            private: user.private,
+            created: user.created,
+            createdAt: user.createdAt,
+            status: user.status,
+            verified: user.verified
+        });
+      }
+    };
+    
 };
 
 
