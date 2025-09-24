@@ -1,0 +1,99 @@
+import {Response, Request} from "express"
+import User from "./user.interface"
+import userModel from "./user.model";
+import {hashSync,compareSync} from "bcryptjs";
+import jwt from "jsonwebtoken";
+class userController {
+    async createAccount(req:Request, res:Response) {
+        let {username, email, password}:User = req.body;
+
+        if(!username || !email || !password) return res.status(403).send('Tüm boşluklar doldurulmalıdır.');
+
+        if(await userModel.findOne({ username })) return res.status(409).send('Kullanıcı adı halihazırda kullanılmaktadır.');
+        if(username.length < 3 || username.length > 32) return res.status(422).send('Kullanıcı adınız minimum 3 maksimum 32 karakter uzunluğunda olmalıdır.');
+        if(await userModel.findOne({ email })) return res.status(409).send('Bu e-posta halihazırda kullanılmaktadır.');
+        if(!isValidEmail(email)) return res.status(409).send('Geçerli bir e-posta girin.');
+        if(password.length < 6) return res.status(422).send('Şifreniz minimum 6 harf/sayı/işaret içermelidir.');
+
+
+        const hashedPassword = hashSync(password,10);
+        let id = `${(await userModel.find({})).length}${username.length}${Math.floor(email.length * 0.75)}${Math.floor(Math.random() * 999999999) + 1}`;
+        new userModel({
+          id,
+          username,
+          email,
+          password: hashedPassword
+        }).save();
+
+
+        return res.status(200).json({
+          status:'Kullanıcı Oluşturuldu.',
+          username: username,
+        });
+    };
+    async SigIn(req:Request, res:Response) {
+      let {input, password} = req.body;
+      const IPAddress = req.ip?.toString()
+
+      if(!input || !password) return res.status(403).send('Tüm Boşluklar Doldurulmalıdır.');
+
+      if(isValidEmail(input)) {
+          const user = await userModel.findOne({ email: input });
+          if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+          if(!compareSync(password, user.password)) return res.status(403).send('Üzgünüz, şifren yanlıştı. Lütfen şifreni dikkatlice kontrol et.');
+          
+          const token = jwt.sign({id: user.id, username: user.username, email: user.email}, process.env.secretKey || '');
+          await userModel.findOneAndUpdate({ email: input }, {lastLoginIPAddress: IPAddress});
+
+          return res.status(200).json({
+            status:'başarılı',
+            token: token
+          });
+      } else {
+          const user = await userModel.findOne({ username: input });
+          if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+          if(!compareSync(password, user.password)) return res.status(403).send('Üzgünüz, şifren yanlıştı. Lütfen şifreni dikkatlice kontrol et.');
+          
+          const token = jwt.sign({id: user.id, username: user.username, email: user.email}, process.env.secretKey || '');
+          await userModel.findOneAndUpdate({ username: input }, {lastLoginIPAddress: IPAddress});
+
+          return res.status(200).json({
+            status:'başarılı',
+            token: token
+          });
+      }
+    };
+
+    async getUser(req:Request, res:Response) {
+      const {id} = req.user;
+
+      const user = await userModel.findOne({ id: id });
+
+      if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+
+      return res.status(200).json({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          profilePhoto: user.profilePhoto,
+          biography: user.biography,
+          followers: user.followers,
+          following: user.following,
+          private: user.private,
+          created: user.created,
+          createdAt: user.createdAt,
+          status: user.status,
+          verified: user.verified
+      });
+    };
+};
+
+
+
+function isValidEmail(email:string) {
+  const re = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+  return re.test(email);
+}
+
+
+export default new userController();

@@ -1,9 +1,7 @@
 import moment from "moment";
 import {Schema, model, Types} from "mongoose";
-
-
 const schema = new Schema({
-    directId: {
+    id: {
         type:String,
         required: true,
     },
@@ -11,7 +9,7 @@ const schema = new Schema({
         type:String,
         required: true,
         maxLength: 32,
-        minLength: 6
+        minLength: 3
     },
     email:{
         type:String,
@@ -33,18 +31,18 @@ const schema = new Schema({
         required: false,
         maxLength: 300
     },
-    followers:{
+    followers:[{
         type:Types.ObjectId,
         ref: 'user',
-    },
-    following:{
+    }],
+    following:[{
         type:Types.ObjectId,
         ref: 'user',
-    },
-    posts:{
+    }],
+    posts:[{
         type:Types.ObjectId,
         ref: 'posts'
-    },
+    }],
     private:{
         type:Boolean,
         default: false
@@ -60,6 +58,17 @@ const schema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now()
+    },
+    status: {
+        type: Boolean,
+        default: false
+    },
+    verified: {
+        type:Boolean,
+        default: false
+    },
+    lastLoginIPAddress:{
+        type:String
     }
-})
-
+});
+export default model('user', schema);
