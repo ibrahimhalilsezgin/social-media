@@ -1,5 +1,5 @@
 import {Response, Request} from "express"
-import User from "./user.interface"
+import {User} from "./user.interface"
 import userModel from "./user.model";
 import {hashSync,compareSync} from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -39,7 +39,7 @@ class userController {
       if(!input || !password) return res.status(403).send('Tüm Boşluklar Doldurulmalıdır.');
 
       if(isValidEmail(input)) {
-          const user = await userModel.findOne({ email: input });
+          const user:any = await userModel.findOne({ email: input });
           if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
           if(!compareSync(password, user.password)) return res.status(403).send('Üzgünüz, şifren yanlıştı. Lütfen şifreni dikkatlice kontrol et.');
           
@@ -51,7 +51,7 @@ class userController {
             token: token
           });
       } else {
-          const user = await userModel.findOne({ username: input });
+          const user:any = await userModel.findOne({ username: input });
           if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
           if(!compareSync(password, user.password)) return res.status(403).send('Üzgünüz, şifren yanlıştı. Lütfen şifreni dikkatlice kontrol et.');
           
@@ -66,7 +66,7 @@ class userController {
     };
 
     async getUser(req:Request, res:Response) {
-      const {id} = req.user;
+      const {id}:User = req.user;
 
       const user = await userModel.findOne({ id: id });
 
@@ -213,7 +213,7 @@ class userController {
       
       if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
       
-      let requ:User = [];
+      let requ:any = [];
 
 
       for(const request of user.followRequests) {

@@ -2,6 +2,7 @@
 	import axios from 'axios';
 	import { getCookie } from '../../utils/cookies.util.js';
 	import { fade, fly } from 'svelte/transition';
+	import type { ErrorPayload } from 'vite';
     
     export let data;
 
@@ -36,7 +37,7 @@
                     toast = '';    
                 }, 2000)
             }
-        } catch(err) {
+        } catch(err:any) {
             toast = err.response.data;
             setTimeout(() =>  {
                 toast = '';    
@@ -63,7 +64,7 @@
                 isFollowing = false;
                 return toast = response.data;
             }
-        } catch(err) {
+        } catch(err:any) {
             toast = err.response.data;
             setTimeout(() =>  {
                 toast = '';    
@@ -80,7 +81,7 @@
         <div class="items-center flex h-3/12 w-full pl-100 ht-6 sm:h-2/12 ">
             <img src="{data.user.profilePhoto}" class="rounded-full h-30 w-30" alt="{data.user.username}">        
             <div class="flex flex-col  w-full pr-100 sm:pr-50 justify-center items-center">
-                {#if data.user.username == data.usr.username}
+                {#if data.user.username == data.usr?.username}
                 <div class="flex pl-50 items-center gap-4 sm:pl-25">
                     <span class="text-3xl font-semibold ">{data.user.username}</span>
                     <i class="fa-solid fa-certificate text-sky-500 text-3xl "></i>
@@ -92,7 +93,8 @@
                         <div class="flex pl-50 items-center gap-4 sm:pl-25">
                             <span class="text-3xl font-semibold ">{data.user.username}</span>
                             <i class="fa-solid fa-certificate text-sky-500 text-3xl "></i>
-                            <div class="bg-gray-500 rounded-lg w-42 text-center h-full cursor-pointer" on:click={() => cancelFollowRequest()}>Takip isteği yollandı <i>X</i></div>
+                            <!-- on:click={() => cancelFollowRequest()} -->
+                            <div class="bg-gray-500 rounded-lg w-42 text-center h-full cursor-pointer" >Takip isteği yollandı <i>X</i></div>
                             <div class="bg-gray-700 rounded-lg w-42 text-center h-full cursor-pointer w">Mesaj Gönder</div>
                         </div>  
                     {:else}
@@ -100,6 +102,8 @@
                             <div class="flex pl-50 items-center gap-4 sm:pl-25">
                                 <span class="text-3xl font-semibold ">{data.user.username}</span>
                                 <i class="fa-solid fa-certificate text-sky-500 text-3xl "></i>
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
                                 <div class="bg-gray-500 rounded-lg w-42 text-center h-full cursor-pointer" on:click={() => unFollowUser()}>Takip ediliyor</div>
                                 <div class="bg-gray-700 rounded-lg w-42 text-center h-full cursor-pointer w">Mesaj Gönder</div>
                             </div> 
@@ -107,6 +111,8 @@
                             <div class="flex pl-50 items-center gap-4 sm:pl-25">
                                 <span class="text-3xl font-semibold ">{data.user.username}</span>
                                 <i class="fa-solid fa-certificate text-sky-500 text-3xl "></i>
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
                                 <div class="bg-blue-500 rounded-lg w-42 text-center h-full cursor-pointer" on:click={() => followUser()}>Takip Et</div>
                                 <div class="bg-gray-700 rounded-lg w-42 text-center h-full cursor-pointer w">Mesaj Gönder</div>
                             </div>  

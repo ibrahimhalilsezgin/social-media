@@ -27,7 +27,7 @@
             if(response.status == 200) {
                 return goto('/followRequests');
             }
-        } catch(err) {
+        } catch(err:any) {
             error = {
                 status: true,
                 message: err.response.data
@@ -56,7 +56,7 @@
             if(response.status == 200) {
                 return goto('/followRequests');
             }
-        } catch(err) {
+        } catch(err:any) {
             error = {
                 status: true,
                 message: err.response.data
