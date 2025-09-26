@@ -9,7 +9,8 @@ const schema = new Schema({
         type:String,
         required: true,
         maxLength: 32,
-        minLength: 3
+        minLength: 3,
+        unique: true
     },
     email:{
         type:String,
@@ -32,12 +33,16 @@ const schema = new Schema({
         maxLength: 300
     },
     followers:[{
-        type:Types.ObjectId,
-        ref: 'user',
+        type:String,
     }],
     following:[{
-        type:Types.ObjectId,
-        ref: 'user',
+        type:String,
+    }],
+    followRequests:[{
+        type:String,
+    }],
+    sendedFollowRequets:[{
+        type:String,
     }],
     posts:[{
         type:Types.ObjectId,

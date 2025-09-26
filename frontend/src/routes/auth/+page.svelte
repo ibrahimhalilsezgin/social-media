@@ -39,19 +39,17 @@
                 };
                 error.status = false;
                 console.log(response.data)
-            } else {
-
-            }
+            } 
 
         } catch(e) {
                 signin = false;
                 error = {
                     status: true,
-                    message: e.response.data
+                    message: e
                 };
                 success.status = false;
 
-                console.log(e.response.data)
+                console.log(e)
         }
     };
     async function signIn() {
@@ -66,13 +64,14 @@
             });
             if(response.status == 200) {
                 setCookie('token', response.data.token);
-                goto('/')
+                location.assign('/');
             }
         } catch(e) {
             error = {
                 status: true,
                 message: e.response.data
             }
+            console.log(e)
         }
     }
     function isValidEmail(email:string) {
@@ -91,11 +90,7 @@
             {success.message}
         </div>
     {/if}
-    {#if error.status}
-        <div class="bg-red-500 rounded-lg h-18 flex items-center w-fit text-center justify-center text-3xl text-white">
-            {error.message}
-        </div>
-    {/if}
+
     <div class="border-2 border-[#2e2a35] rounded-lg h-1/2 w-1/5 flex flex-col gap-4 justify-center items-center">
         
         <img src="https://www.pngkey.com/png/full/28-287308_instagram-logo-text-white.png" class="h-16 relative" alt="instagram">
@@ -108,7 +103,11 @@
     {:else}
         <button class="bg-[#645566] w-3/4 rounded-lg text-white h-8 cursor-pointer" onclick={() => signIn()}>Giriş Yap</button>
     {/if}
-
+    {#if error.status}
+        <div class="text-red-500 rounded-lg h-18 flex items-center w-fit text-center justify-center ">
+            {error.message}
+        </div>
+    {/if}
     </div>
     <div class="border-2 border-[#2e2a35] rounded-lg h-1/12 w-1/5 flex flex-col gap-4 justify-center items-center">
         <span class="text-white">Hesabınız Yok mu? <span class="text-blue-500 cursor-pointer" onclick={() => signin = false}>Kayıt Ol</span></span>

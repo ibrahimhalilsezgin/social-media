@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 const app = express();
 moment.locale('tr');
 const PORT = process.env.PORT || 3000;
+mongoose.set('strictPopulate', false)
 mongoose.connect(process.env.mongouri || '').then(async () => {
     console.log('Database Bağlandı');
 }).catch((err) => {
@@ -26,11 +27,11 @@ const limiter = rateLimit({
         }, 3000)
     }
 });
-
+app.use(cors());
 app.use(limiter);
 app.use(bodyParser.urlencoded({}));
 app.use(bodyParser.json());
-app.use(cors());
+
 app.use(morgan('dev'));
 
 import userRouter from "./modules/user/user.router";

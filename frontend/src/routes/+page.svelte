@@ -1,7 +1,11 @@
 <script lang="ts">
     export let data;
+    console.log(data)
 </script>
-<div class="text-2xl text-white">
 
-    {data.user.username}
-</div>
+{#if data.user}
+    {JSON.stringify(data.user)}
+
+{:else}
+    kullanıcı yok
+{/if}

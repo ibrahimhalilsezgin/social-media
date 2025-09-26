@@ -1,8 +1,15 @@
 import axios from 'axios';
 
-export const load = async ({ locals,params }) => {
+export const load = async ({ locals,params, cookies }) => {
     
     let user;
+    const u = await axios({
+        url:'http://localhost:3000/getSelfInfo',
+        method:'GET',
+        headers:{
+            Authorization: 'Bearer ' + cookies.get('token')
+        }
+    })
     try {
         const response = await axios({
             url:'http://localhost:3000/getUserFromUsername',
@@ -11,16 +18,18 @@ export const load = async ({ locals,params }) => {
                 username: params.username
             }
         });
-        console.log(response.data)
-        user = response.data
+        
+        user = response.data;
+        
     } catch(e) {
-        console.log(e.response.status)
-
-    }
+        console.log(e)
+    }   
 
     
     return {        
         usr: locals.user,
-        user: user
+        user: user,
+        extUser: u.data
+        
     };
 };

@@ -3,6 +3,7 @@ import User from "./user.interface"
 import userModel from "./user.model";
 import {hashSync,compareSync} from "bcryptjs";
 import jwt from "jsonwebtoken";
+import axios from "axios"
 class userController {
     async createAccount(req:Request, res:Response) {
         let {username, email, password}:User = req.body;
@@ -87,6 +88,25 @@ class userController {
           verified: user.verified
       });
     };
+    async getSelfInfo(req:Request, res:Response) {
+      if(!req.user) return res.status(403)
+      const user = await userModel.findOne({ id: req.user.id });
+
+      if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+
+      res.status(200).json({
+        username: user.username,
+        profilePhoto: user.profilePhoto,
+        biography: user.biography,
+        followers: user.followers,
+        following: user.following,
+        followRequests: user.followRequests,
+        sendedFollowRequets: user.sendedFollowRequets,
+        created: user.created,
+        createdAt: user.createdAt,
+        verified: user.verified
+      });
+    }
     async getUserFromUsername(req:Request, res:Response) {
       const {username} = req.body;
 
@@ -126,7 +146,155 @@ class userController {
         });
       }
     };
-    
+    async followUser(req:Request, res:Response) {
+      const user = await userModel.findOne({ id: req.user.id });
+      if(!user) return;
+
+      let { username } = req.body;
+      if(username == user.username) return res.status(422).send('Kendine istek atamazsın.');
+      const fUser = await userModel.findOne({ username })
+      if(!fUser) return res.status(404).send('Kullanıcı bulunamadı.');
+      if(user.following.includes(fUser.username)) return res.status(500).send('Zaten bu kişiyi takip ediyorsun.');
+
+      if(fUser.private) {
+        if(fUser.followRequests.includes(user.username)) return res.status(500).send('İstek zaten göndermişsiniz.');
+        await userModel.findOneAndUpdate({ id: fUser.id }, {
+          $push:{
+            followRequests:[user.username]
+          }
+        });
+        await userModel.findOneAndUpdate({ id: user.id }, {
+          $push:{
+            sendedFollowRequets:[fUser.username]
+          }
+        });
+        return res.status(200).send('Takip isteği yollandı');
+      };
+      
+      await userModel.findOneAndUpdate({ id: fUser.id }, {
+        $push:{
+            followers:[user.username]
+        }
+      });
+      
+      await userModel.findOneAndUpdate({ id: req.user.id }, {
+        $push:{
+          following:[fUser.username]
+        }
+      });
+
+      return res.status(200).send('Takip edildi.');
+    };
+    async unfollowUser(req:Request, res:Response) {
+      const user = await userModel.findOne({ id: req.user.id });
+      if(!user) return;
+
+      let { username } = req.body;
+      if(!username == user.username) return res.status(422).send('Kendini kendinden cikartamazsın a - a = a.');
+      const fUser = await userModel.findOne({ username })
+      if(!fUser) return res.status(404).send('Kullanıcı bulunamadı.');
+      if(!user.following.includes(fUser.username)) return res.status(500).send('Zaten bu kişiyi takip etmiyorsun.');
+      
+      await userModel.findOneAndUpdate({ id: fUser.id }, {
+        $pull:{
+            followers:user.username
+        }
+      });
+      await userModel.findOneAndUpdate({ id: req.user.id }, {
+        $pull:{
+          following:fUser.username
+        }
+      });
+      console.log('takipten cikti')
+      return res.status(200).send('Takipten çıkıldı.');
+    }
+    async getFollowRequests(req: Request, res:Response) {
+      const user = await userModel.findOne({ id: req.user.id }).populate('user');
+      
+      if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+      
+      let requ:User = [];
+
+
+      for(const request of user.followRequests) {
+        const response = await axios({
+            url:`http://${process.env.domain}:${process.env.PORT}/getUserFromUsername`,
+            method:'GET',
+            data:{
+              username: request
+            }
+        });
+
+        requ = [response.data, ...requ];
+
+      }
+      
+      res.json(requ);
+    };
+    async acceptFollowRequest(req: Request, res: Response) {
+        try {
+          const user = await userModel.findOne({ id: req.user.id });
+          const { username } = req.body;
+
+          if (!user) {
+            return res.status(404).send("Kullanıcı bulunamadı.");
+          }
+
+          if (!user.followRequests.includes(username)) {
+            return res.status(404).send("Böyle bir isteğin bulunmuyor.");
+          }
+
+          await userModel.findOneAndUpdate(
+            { id: req.user.id },
+            {
+              $pull: { followRequests: username },
+              $push: { followers: username },
+            }
+          );
+          await userModel.findOneAndUpdate({ username: username }, {
+            $pull: {
+              sendedFollowRequets: req.user.username
+            },
+            $push:{
+              following: req.user.username
+            }
+          })
+          res.status(200).send("Takip isteği kabul edildi.");
+        } catch (err) {
+          console.error(err);
+          res.status(500).send("Sunucu hatası.");
+        }
+    };
+    async declineFollowRequest(req: Request, res: Response) {
+        try {
+          const user = await userModel.findOne({ id: req.user.id });
+          const { username } = req.body;
+
+          if (!user) {
+            return res.status(404).send("Kullanıcı bulunamadı.");
+          }
+
+          if (!user.followRequests.includes(username)) {
+            return res.status(404).send("Böyle bir isteğin bulunmuyor.");
+          }
+
+          await userModel.findOneAndUpdate(
+            { id: req.user.id },
+            {
+              $pull: { followRequests: username },
+            }
+          );
+          await userModel.findOneAndUpdate({ username: username }, {
+            $pull: {
+              sendedFollowRequets: req.user.username
+            }
+          })
+          res.status(200).send("Takip isteği kabul edildi.");
+        } catch (err) {
+          console.error(err);
+          res.status(500).send("Sunucu hatası.");
+        }
+    };
 };
 
 
