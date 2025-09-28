@@ -1,14 +1,27 @@
 <script lang="ts">
-	import axios from 'axios';
-	import { getCookie } from '../../utils/cookies.util.js';
-	import { fade, fly } from 'svelte/transition';
-	import type { ErrorPayload } from 'vite';
-    
+    import axios from 'axios';
+    import { getCookie } from '../../utils/cookies.util.js';
+    import { fade, fly } from 'svelte/transition';
+    import type { ErrorPayload } from 'vite';
+
     export let data;
 
-    let toast = ''
-    let isFollowing = data.extUser.following.includes(data.user.username);
-    let isFollowRequestSended = data.extUser.sendedFollowRequets.includes(data.user.username);
+    let toast = '';
+    let isFollowing: boolean = false;
+    let isFollowRequestSended: boolean = false;
+
+    // extUser varsa kontrol et
+    if (data?.extUser) {
+    const extUser = data.extUser;
+
+    isFollowRequestSended = extUser.sendedFollowRequests?.includes(data.user?.username) ?? false;
+    isFollowing = extUser.following?.includes(data.user?.username) ?? false;
+    }
+
+    // $: console.log(isFollowing);
+    // $: console.log(toast);
+    // $: console.log(isFollowRequestSended);
+
     const followUser = async () => {
         try {
             const response = await axios({
@@ -71,8 +84,39 @@
             }, 2000)
         }
     }
-    
 
+    
+    const cancelFollowRequest = async () => {
+        try {
+            const response = await axios({
+                url:'http://localhost:3000/cancelFollowRequest',
+                method:'post',
+                data:{
+                    username: data.user.username
+                },
+                headers:{
+                    Authorization: 'Bearer ' + getCookie('token')
+                }
+            });
+
+            if(response.status == 200) {
+                isFollowRequestSended = false;
+                isFollowing = false;
+                toast = response.data
+                setTimeout(() =>  {
+                    toast = '';    
+                }, 2000)
+            }
+        } catch (error:any) {
+            toast = error.response.data
+            setTimeout(() =>  {
+                toast = '';    
+            }, 2000)
+        }
+    }
+    
+    
+    console.log(data.user)
 </script>
 
 {#if data.user}
@@ -90,11 +134,12 @@
                 </div>
                 {:else}
                     {#if isFollowRequestSended}
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
                         <div class="flex pl-50 items-center gap-4 sm:pl-25">
                             <span class="text-3xl font-semibold ">{data.user.username}</span>
                             <i class="fa-solid fa-certificate text-sky-500 text-3xl "></i>
-                            <!-- on:click={() => cancelFollowRequest()} -->
-                            <div class="bg-gray-500 rounded-lg w-42 text-center h-full cursor-pointer" >Takip isteği yollandı <i>X</i></div>
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <div class="bg-gray-500 rounded-lg w-fit text-center h-full cursor-pointer" on:click={() => cancelFollowRequest()}>Takip isteği yollandı X</div>
                             <div class="bg-gray-700 rounded-lg w-42 text-center h-full cursor-pointer w">Mesaj Gönder</div>
                         </div>  
                     {:else}
@@ -135,39 +180,77 @@
                 {/if}
             </div>
         </div>
+        <div class="flex justify-center">
+            <hr class="w-4/6 text-gray-700">
+        </div>
         <div class="h-fit items-center flex justify-center">
 
+            {#if data.user.private}
+                <div class="flex justify-center pt-10 items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="flex justify-center border rounded-full h-12 w-12 items-center">
+                            <i class="fa-solid fa-lock"></i> 
+                        </div>
+                    <span>Bu hesap gizli</span>
+                    </div>
+                    <div>
+                        {#if isFollowRequestSended}
+                        <div class="flex items-center gap-4 pl-10">
+                            <!-- on:click={() => cancelFollowRequest()} -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <div class="bg-gray-500 rounded-lg w-fit text-center h-full cursor-pointer" on:click={() => cancelFollowRequest()}>Takip isteği yollandı X</div>
+                        </div>  
+                    {:else}
+                        {#if isFollowing}
+                            <div class="flex items-center gap-4 pl-10">
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                <div class="bg-gray-500 rounded-lg w-42 text-center h-full cursor-pointer" on:click={() => unFollowUser()}>Takip ediliyor</div>
+                            </div> 
+                            {:else}
+                            <div class="flex items-center gap-4 pl-10">
 
-            <div class="grid grid-cols-3 justify-between items-stretch gap-4 pt-20 sm:pt-10 sm:gap-2 sm:grid-cols-3s">
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg  ">
-                    <img src="https://www.alleycat.org/wp-content/uploads/2019/03/FELV-cat.jpg" class="aspect-square h-full rounded-sm" alt="">
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-                <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                    1
-                </div>
-            </div>
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                <div class="bg-blue-500 rounded-lg w-42 text-center h-full cursor-pointer" on:click={() => followUser()}>Takip Et</div>
+                            </div>  
+                        {/if}
 
+                        {/if}
+                    </div>
+                </div>
+            {:else}
+                <div class="grid grid-cols-3 justify-between items-stretch gap-4 pt-20 sm:pt-10 sm:gap-2 sm:grid-cols-3s">
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg  ">
+                        <img src="https://www.alleycat.org/wp-content/uploads/2019/03/FELV-cat.jpg" class="aspect-square h-full rounded-sm" alt="">
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
+                        1
+                    </div>
+                </div>
+            {/if}
 
         </div>
     </div>  
@@ -177,10 +260,4 @@
             {toast}
         </div>
     {/if}
-
-
-    {:else}
-    <div>
-        Kullanıcı bulunmuyor
-    </div>
 {/if}

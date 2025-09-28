@@ -25,7 +25,7 @@
             });
 
             if(response.status == 200) {
-                return goto('/followRequests');
+                window.location.reload()
             }
         } catch(err:any) {
             error = {
@@ -40,7 +40,6 @@
     }
 
     const declineRequest = async (username:string) => {
-        console.log(username)
         try {
             const response = await axios({
                 url:'http://localhost:3000/declineFollowRequest',
@@ -54,7 +53,7 @@
             });
 
             if(response.status == 200) {
-                return goto('/followRequests');
+                window.location.reload()
             }
         } catch(err:any) {
             error = {

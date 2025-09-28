@@ -11,9 +11,7 @@ class userController {
         if(!username || !email || !password) return res.status(403).send('Tüm boşluklar doldurulmalıdır.');
 
         if(await userModel.findOne({ username })) return res.status(409).send('Kullanıcı adı halihazırda kullanılmaktadır.');
-        if(username.length < 3 || username.length > 32) return res.status(422).send('Kullanıcı adınız minimum 3 maksimum 32 karakter uzunluğunda olmalıdır.');
         if(await userModel.findOne({ email })) return res.status(409).send('Bu e-posta halihazırda kullanılmaktadır.');
-        if(!isValidEmail(email)) return res.status(409).send('Geçerli bir e-posta girin.');
         if(password.length < 6) return res.status(422).send('Şifreniz minimum 6 harf/sayı/işaret içermelidir.');
 
 
@@ -34,9 +32,8 @@ class userController {
     };
     async SigIn(req:Request, res:Response) {
       let {input, password} = req.body;
-      const IPAddress = req.ip?.toString()
 
-      if(!input || !password) return res.status(403).send('Tüm Boşluklar Doldurulmalıdır.');
+      const IPAddress = req.ip?.toString()
 
       if(isValidEmail(input)) {
           const user:any = await userModel.findOne({ email: input });
@@ -89,7 +86,6 @@ class userController {
       });
     };
     async getSelfInfo(req:Request, res:Response) {
-      if(!req.user) return res.status(403)
       const user = await userModel.findOne({ id: req.user.id });
 
       if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
@@ -108,8 +104,8 @@ class userController {
       });
     }
     async getUserFromUsername(req:Request, res:Response) {
-      const {username} = req.body;
-
+      const { username } = req.body;
+      console.log(username)
       const user = await userModel.findOne({ username });
 
       if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
@@ -295,11 +291,35 @@ class userController {
           res.status(500).send("Sunucu hatası.");
         }
     };
+    async cancelFollowRequest(req:Request, res:Response) {
+      try {
+        const user = await userModel.findOne({ id: req.user.id });
+        const { username } = req.body;
+        if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+
+        if(!user.sendedFollowRequets.includes(username)) return res.status(404).send('Bu kişiye zaten istek göndermemişsin.');
+
+        await userModel.findOneAndUpdate({ id:req.user.id }, {
+          $pull: {
+            sendedFollowRequets:username
+          }
+        });
+
+        await userModel.findOneAndUpdate({ username: username }, {
+          $pull: {
+            followRequests: req.user.username
+          }
+        });
+
+        return res.status(200).send('İstek geri çekildi.')
+      } catch(err) {
+        if(err) return console.error(err);
+      };
+    };
 };
 
-
-
 function isValidEmail(email:string) {
+  if(!email) return true  ;
   const re = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   return re.test(email);
 }
