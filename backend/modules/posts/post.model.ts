@@ -11,10 +11,12 @@ const schema = new Schema({
         type:String,
         required: true,
     },
-    title:String,
-    images:[{
-        type:String
-    }],
+    description:{
+        type:String,
+        min:0,
+        max: 128
+    },
+    filename:String,
     created:{
         type:String,
         default:moment().locale('tr').format('lll').toString()

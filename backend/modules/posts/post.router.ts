@@ -1,20 +1,31 @@
 import { Request, Router } from "express";
-import { authenticateToken } from "../../middleware/authentication";
+import { authenticateToken, optionalAuthenticateToken } from "../../middleware/authentication";
 import postController from "./post.controller";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { randomUUID } from "crypto";
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, '../uploads/'); // 'uploads' klasörüne kaydet
+  destination: function (req:Request, file, cb) {
+      const user = req.user.username
+      if(!user) return;
+      const uploadPath = path.join(__dirname, 'uploads', user);
+
+      fs.mkdirSync(uploadPath, { recursive: true})
+      cb(null, uploadPath); // 'uploads' klasörüne kaydet
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname); // dosya ismini benzersiz yap
+
+    const unique = randomUUID() + '.jpeg';
+    cb(null, unique);
   }
 });
 
 const upload = multer({ storage: storage });
 const router = Router();
 
-router.post('/create', authenticateToken, upload.array('images', 5) ,postController.createPost);
+router.get("/get/:username/:filename", optionalAuthenticateToken,postController.getPost);
+router.post('/create', authenticateToken, upload.single("file") ,postController.createPost);
 router.delete('/delete', authenticateToken, postController.deletePost);
 router.get('/getUserPosts', authenticateToken, postController.getUserPosts);
 

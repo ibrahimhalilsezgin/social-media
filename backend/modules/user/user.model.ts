@@ -45,8 +45,7 @@ const schema = new Schema({
         type:String,
     }],
     posts:[{
-        type:Types.ObjectId,
-        ref: 'posts'
+        type:String,
     }],
     private:{
         type:Boolean,

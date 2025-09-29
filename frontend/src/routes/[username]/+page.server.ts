@@ -1,10 +1,10 @@
 import axios from 'axios';
+import { getCookie } from '../../utils/cookies.util.js';
 
 export const load = async ({ locals, params, cookies }) => {
   let user;
   let u;
 
-  // Token varsa self info çek
   const token = cookies.get('token');
   if (token) {
     try {
@@ -15,17 +15,29 @@ export const load = async ({ locals, params, cookies }) => {
       });
       u = response.data;
     } catch (e) {
-      console.log('getSelfInfo error:', e.message);
     }
   }
 
   try {
-    const response = await axios.get('http://localhost:3000/getUserFromUsername', {
-      data: { username: params.username }, // GET için params kullan
-    });
+    if(locals.user) {
+      const response = await axios.get('http://localhost:3000/getUserFromUsername', {
+        data: { username: params.username }, 
+        headers:{
+          Authorization: 'Bearer ' + cookies.get('token')
+        }
+      });
+      console.log('kullanıcı var ', locals.user.username);
+      console.log(response.data)
     user = response.data;
+    } else {
+      const response = await axios.get('http://localhost:3000/getUserFromUsername', {
+        data: { username: params.username }, 
+
+      });
+      console.log('kullanıcı yok');
+    user = response.data;
+    }
   } catch (e) {
-    console.log('getUserFromUsername error:', e.message);
   }
 
   if (!locals.user) {
@@ -38,6 +50,6 @@ export const load = async ({ locals, params, cookies }) => {
   return {
     usr: locals.user,
     user,
-    extUser: u || null,
+    extUser: u || null
   };
 };

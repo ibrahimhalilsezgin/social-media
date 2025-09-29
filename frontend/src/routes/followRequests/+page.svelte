@@ -2,70 +2,12 @@
 	import { goto } from '$app/navigation';
 	import axios from 'axios';
 	import { getCookie } from '../../utils/cookies.util.js';
-
+    import {declineRequest, acceptRequest, error} from "$lib/stores/follow.store";
     export let data;
-    let  error = {
-        status:false,
-        message: ''
-    };
+
     const requests = data.followRequests
 
-    const acceptRequest = async (username:string) => {
-        console.log(username)
-        try {
-            const response = await axios({
-                url:'http://localhost:3000/acceptFollowRequest',
-                method:'post',
-                data:{
-                    username: username
-                },
-                headers:{
-                    Authorization: 'Bearer ' + getCookie('token')
-                }
-            });
 
-            if(response.status == 200) {
-                window.location.reload()
-            }
-        } catch(err:any) {
-            error = {
-                status: true,
-                message: err.response.data
-            }
-
-            setTimeout(() => {
-                error.status = false
-            }, 3400)
-        }
-    }
-
-    const declineRequest = async (username:string) => {
-        try {
-            const response = await axios({
-                url:'http://localhost:3000/declineFollowRequest',
-                method:'post',
-                data:{
-                    username: username
-                },
-                headers:{
-                    Authorization: 'Bearer ' + getCookie('token')
-                }
-            });
-
-            if(response.status == 200) {
-                window.location.reload()
-            }
-        } catch(err:any) {
-            error = {
-                status: true,
-                message: err.response.data
-            }
-
-            setTimeout(() => {
-                error.status = false
-            }, 3400)
-        }
-    }
 </script>
 {#if error.status}
     <div class="bg-red-500  fixed flex items-center justify-center w-screen">

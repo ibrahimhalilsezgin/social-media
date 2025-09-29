@@ -103,45 +103,62 @@ class userController {
         verified: user.verified
       });
     }
-    async getUserFromUsername(req:Request, res:Response) {
+    async getUserFromUsername(req: Request, res: Response) {
       const { username } = req.body;
-      console.log(username)
+
       const user = await userModel.findOne({ username });
 
-      if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+      if (!user) return res.status(404).send('Kullanıcı bulunamadı.');
 
-      if(user.private) {
-        return res.status(200).json({
-          id: user.id,
-          username: user.username,
-          profilePhoto: user.profilePhoto,
-          biography: user.biography,
-          followers: user.followers.length,
-          following: user.following.length,
-          posts: user.posts.length,
-          private: user.private,
-          created: user.created,
-          createdAt: user.createdAt,
-          status: user.status,
-          verified: user.verified
-        });
-      } else {
-          return res.status(200).json({
-            id: user.id,
-            username: user.username,
-            profilePhoto: user.profilePhoto,
-            biography: user.biography,
-            followers: user.followers,
-            following: user.following,
-            posts: user.posts,
-            private: user.private,
-            created: user.created,
-            createdAt: user.createdAt,
-            status: user.status,
-            verified: user.verified
-        });
+      // Eğer giriş yapılmamışsa veya kullanıcı özel ve takip etmiyorsak özet bilgi dön
+      const isFollowing = req.user ? user.followers.includes(req.user.username) : false;
+      const limitedInfo = {
+        id: user.id,
+        username: user.username,
+        profilePhoto: user.profilePhoto,
+        biography: user.biography,
+        followers: user.followers.length,
+        following: user.following.length,
+        posts: user.posts.length,
+        private: user.private,
+        created: user.created,
+        createdAt: user.createdAt,
+        status: user.status,
+        verified: user.verified,
+        isFollowing: isFollowing
+
+      };
+
+      const fullInfo = {
+        id: user.id,
+        username: user.username,
+        profilePhoto: user.profilePhoto,
+        biography: user.biography,
+        followers: user.followers,
+        following: user.following,
+        posts: user.posts,
+        private: user.private,
+        created: user.created,
+        createdAt: user.createdAt,
+        status: user.status,
+        verified: user.verified,
+        isFollowing: isFollowing
+      };
+      // console.log('full info', fullInfo)
+      // console.log('az info', limitedInfo)
+      console.log(!req.user || (user.private && !isFollowing))
+      if(req.user?.username == user.username) return res.status(200).json(fullInfo);
+      if((!req.user && !user.private)) {
+        return res.status(200).json(fullInfo);
       }
-    };
+      if ((user.private && !isFollowing)) {
+
+        return res.status(200).json(limitedInfo);
+      }
+      
+      // Diğer durumlarda full info dön
+      return res.status(200).json(fullInfo);
+    }
     async followUser(req:Request, res:Response) {
       const user = await userModel.findOne({ id: req.user.id });
       if(!user) return;
@@ -213,16 +230,9 @@ class userController {
 
 
       for(const request of user.followRequests) {
-        const response = await axios({
-            url:`http://${process.env.domain}:${process.env.PORT}/getUserFromUsername`,
-            method:'GET',
-            data:{
-              username: request
-            }
-        });
+        const U = await userModel.findOne({ username: request });
 
-        requ = [response.data, ...requ];
-
+        requ = [U, ...requ];
       }
       
       res.json(requ);

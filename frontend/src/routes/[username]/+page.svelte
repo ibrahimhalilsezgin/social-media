@@ -2,7 +2,8 @@
     import axios from 'axios';
     import { getCookie } from '../../utils/cookies.util.js';
     import { fade, fly } from 'svelte/transition';
-    import type { ErrorPayload } from 'vite';
+	import { onMount } from 'svelte';
+	import Leftbar from '$lib/components/Leftbar.svelte';
 
     export let data;
 
@@ -10,18 +11,37 @@
     let isFollowing: boolean = false;
     let isFollowRequestSended: boolean = false;
 
-    // extUser varsa kontrol et
-    if (data?.extUser) {
-    const extUser = data.extUser;
+    let a:any = [];
+    isFollowRequestSended = data.extUser.sendedFollowRequets.includes(data.user.username) ?? false;
 
-    isFollowRequestSended = extUser.sendedFollowRequests?.includes(data.user?.username) ?? false;
-    isFollowing = extUser.following?.includes(data.user?.username) ?? false;
-    }
+    onMount(() => {
 
-    // $: console.log(isFollowing);
-    // $: console.log(toast);
-    // $: console.log(isFollowRequestSended);
+        console.log(data.extUser.sendedFollowRequets.includes(data.user.username))
+        isFollowing = data.extUser.following?.includes(data.user?.username) ?? false;
+        if(data.user.username == data.usr?.username)
+        {
+            isFollowRequestSended = false;
+            isFollowing = true
 
+        }
+        const posts = data.user.posts
+        if(!posts) return;
+        posts.forEach(async (post:any) => {
+            const response = await axios({
+                method:'get',
+                url:`http://localhost:3000/posts/get/${data.user.username}/${post}`,
+                responseType:'blob',
+                headers:{
+                    Authorization: 'Bearer ' + getCookie('token')
+                }
+            })
+            const blob = new Blob([response.data], { type: response.data.type });
+
+            const f = URL.createObjectURL(blob);
+            a = [...a, f]
+            console.log(f)
+        });
+    })
     const followUser = async () => {
         try {
             const response = await axios({
@@ -84,8 +104,6 @@
             }, 2000)
         }
     }
-
-    
     const cancelFollowRequest = async () => {
         try {
             const response = await axios({
@@ -115,10 +133,13 @@
         }
     }
     
-    
-    console.log(data.user)
-</script>
 
+    // console.log(data.usr)
+    // console.log(data.extUser)
+    // console.log(data.user)
+
+</script>
+<Leftbar user={data.extUser} />
 {#if data.user}
         
     <div class="text-2xl text-white flex h-screen flex-col ">
@@ -167,9 +188,9 @@
                 {/if}
                 {#if data.user.private}
                 <div class="flex pl-10 gap-10 w-full items-center sm:pl-25 sm:gap-5 justify-center">
-                    <div class="text-xl ">{data.user.posts} Post</div>
-                    <div class="text-xl ">{data.user.followers} Takipçi</div>
-                    <div class="text-xl ">{data.user.following} Takip Edilen</div>
+                    <div class="text-xl ">{data.user.posts.length} Post</div>
+                    <div class="text-xl ">{data.user.followers.length} Takipçi</div>
+                    <div class="text-xl ">{data.user.following.length} Takip Edilen</div>
                 </div>
                 {:else}
                 <div class="flex pl-10  gap-10 w-full items-center justify-center">
@@ -184,7 +205,9 @@
             <hr class="w-4/6 text-gray-700">
         </div>
         <div class="h-fit items-center flex justify-center">
-
+            {#if !isFollowing}
+                
+            
             {#if data.user.private}
                 <div class="flex justify-center pt-10 items-center">
                     <div class="flex items-center gap-2">
@@ -222,34 +245,26 @@
                 </div>
             {:else}
                 <div class="grid grid-cols-3 justify-between items-stretch gap-4 pt-20 sm:pt-10 sm:gap-2 sm:grid-cols-3s">
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg  ">
-                        <img src="https://www.alleycat.org/wp-content/uploads/2019/03/FELV-cat.jpg" class="aspect-square h-full rounded-sm" alt="">
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
-                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg ">
-                        1
-                    </div>
+
+                    {#each a as  post}
+                        
+                            
+                        <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg  ">
+                            <img src="{post}" class="aspect-square h-full rounded-sm" alt="">
+                        </div>
+                    {/each}
+
                 </div>
+            {/if}
+            {:else}
+            <div class="grid grid-cols-3 justify-between items-stretch gap-4 pt-20 sm:pt-10 sm:gap-2 sm:grid-cols-3s">
+
+                {#each a as  post}
+                    <div class="border-[#2e2a35] order-1 border-4 w-60 h-60 rounded-lg  ">
+                        <img src="{post}" class="aspect-square h-full rounded-sm" alt="">
+                    </div>
+                {/each}
+            </div>
             {/if}
 
         </div>

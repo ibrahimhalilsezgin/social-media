@@ -1,6 +1,6 @@
 import {Router} from "express";
 import userController from "./user.controller";
-import {authenticateToken} from "../../middleware/authentication"
+import {authenticateToken,optionalAuthenticateToken} from "../../middleware/authentication"
 import { createAccountValidation, signInValidation } from "../../validations/userValidation";
 import { validateRequest } from "../../middleware/validation";
 const router = Router();
@@ -13,7 +13,7 @@ router.post('/cancelFollowRequest', authenticateToken, userController.cancelFoll
 router.post('/followUser', authenticateToken, userController.followUser);
 router.post('/unFollowUser', authenticateToken, userController.unfollowUser);
 router.get('/getUser', authenticateToken, userController.getUser);
-router.get('/getUserFromUsername', userController.getUserFromUsername);
+router.get('/getUserFromUsername', optionalAuthenticateToken, userController.getUserFromUsername);
 router.get('/getSelfInfo', authenticateToken, userController.getSelfInfo);
 router.get('/getFollowRequests', authenticateToken, userController.getFollowRequests);
 
