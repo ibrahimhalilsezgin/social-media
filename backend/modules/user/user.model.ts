@@ -57,7 +57,7 @@ const schema = new Schema({
     },
     created: {
         type: String,
-        default: moment().format('lll').toString()
+        default: moment().locale('tr').format('lll').toString()
     },
     createdAt: {
         type: Date,
@@ -73,6 +73,16 @@ const schema = new Schema({
     },
     lastLoginIPAddress:{
         type:String
-    }
+    },
+    notifications:[{
+        title:String,
+        content: String,
+        url:String,
+        created: {
+            type:String,
+            default: moment().locale('tr').format('lll').toString()
+        }
+
+    }]
 });
 export default model('user', schema);

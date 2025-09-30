@@ -3,7 +3,8 @@ import {User} from "./user.interface"
 import userModel from "./user.model";
 import {hashSync,compareSync} from "bcryptjs";
 import jwt from "jsonwebtoken";
-import axios from "axios"
+import { sendNotification } from "../../utils/notification";
+
 class userController {
     async createAccount(req:Request, res:Response) {
         let {username, email, password}:User = req.body;
@@ -85,6 +86,35 @@ class userController {
           verified: user.verified
       });
     };
+
+    async getUserProfilePhoto(req: Request, res: Response) {
+      try {
+        const user = await userModel.findOne({ username: req.params.username });
+        if (!user || !user.profilePhoto) {
+          return res.status(404).send("Kullanıcı bulunamadı veya fotoğraf yok.");
+        }
+
+        let base64String = user.profilePhoto;
+
+        // Eğer data URI prefix varsa çıkar
+        if (base64String.startsWith("data:")) {
+          base64String = base64String.split(",")[1];
+        }
+
+        const buffer = Buffer.from(base64String, "base64");
+
+        const mimeType = "image/png";
+
+        res.setHeader("Content-Type", mimeType);
+        res.setHeader("Content-Length", buffer.length.toString());
+        res.send(buffer);
+      } catch (err) {
+        console.error(err);
+        res.status(500).send("Fotoğraf yüklenirken hata oluştu.");
+      }
+    }
+
+
     async getSelfInfo(req:Request, res:Response) {
       const user = await userModel.findOne({ id: req.user.id });
 
@@ -98,6 +128,7 @@ class userController {
         following: user.following,
         followRequests: user.followRequests,
         sendedFollowRequets: user.sendedFollowRequets,
+        notifications: user.notifications,
         created: user.created,
         createdAt: user.createdAt,
         verified: user.verified
@@ -181,7 +212,13 @@ class userController {
             sendedFollowRequets:[fUser.username]
           }
         });
+        sendNotification(req, fUser.username,{
+          title: 'Yeni Takip İsteği',
+          content: `${req.user.username} Takip İsteği Gönderdi.`,
+        })
+
         return res.status(200).send('Takip isteği yollandı');
+
       };
       
       await userModel.findOneAndUpdate({ id: fUser.id }, {
@@ -195,7 +232,10 @@ class userController {
           following:[fUser.username]
         }
       });
-
+      sendNotification(req, fUser.username,{
+        title: 'Yeni Takipçi',
+        content: `${req.user.username} Takip Etti.`,
+      })
       return res.status(200).send('Takip edildi.');
     };
     async unfollowUser(req:Request, res:Response) {
@@ -326,7 +366,56 @@ class userController {
         if(err) return console.error(err);
       };
     };
-};
+
+    async updatePrivacy(req:Request, res:Response) {
+      const {priv} = req.body
+      const user = await userModel.findOne({ username: req.user.username });
+      if(!user) return res.status(404).send('Kullanıcı Bulunmuyor');
+      await userModel.findOneAndUpdate({ username: req.user.username }, {
+        private: priv
+      })
+
+      res.status(200).send('Hesap gizliliği değiştirildi.')
+
+    };
+
+    async updateProfile(req:Request, res:Response) {
+      const user = await userModel.findOne({ username: req.user.username });
+      if(!user) return res.status(404).send('Kullanıcı Bulunmuyor');
+      const {bio} = req.body;
+      
+      await userModel.findOneAndUpdate({ username: req.user.username }, {
+        biography: bio
+      });
+
+      res.status(200).send('bio değiştirildi')
+    };
+
+    async updatePassword(req:Request, res:Response) {
+      const {oldPassword, password} = req.body;
+
+      const user = await userModel.findOne({ username: req.user.username});
+
+      if(!user) return res.status(404);
+
+
+      if(!compareSync(password, user.password)){
+        return res.status(403).send('Eski şifreniz doğru değil.');
+      }
+
+      if(!oldPassword ||oldPassword.length < 6) return res.status(513).send('Yeni şifreniz şifre kurallarına uymuyor');
+
+      const hashedPassword = hashSync(password)
+      await userModel.findOneAndUpdate({  username: req.user.username  }, {
+        password: hashedPassword
+      })
+
+      return res.status(200).send('Şifreniz değiştirildi.');
+
+      
+    }
+
+  };
 
 function isValidEmail(email:string) {
   if(!email) return true  ;

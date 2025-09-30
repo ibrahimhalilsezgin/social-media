@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import axios from 'axios';
 	import { getCookie } from '../../utils/cookies.util.js';
-    import {declineRequest, acceptRequest, error} from "$lib/stores/follow.store";
+    import {declineRequest, acceptRequest, error} from "$lib/stores/follow.store.js";
     export let data;
 
     const requests = data.followRequests

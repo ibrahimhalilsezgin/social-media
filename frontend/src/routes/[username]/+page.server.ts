@@ -1,7 +1,9 @@
 import axios from 'axios';
-import { getCookie } from '../../utils/cookies.util.js';
+import { redirect } from '@sveltejs/kit';
 
 export const load = async ({ locals, params, cookies }) => {
+  if(!locals.user) return redirect(302, '/auth');
+  
   let user;
   let u;
 

@@ -13,8 +13,12 @@ router.post('/cancelFollowRequest', authenticateToken, userController.cancelFoll
 router.post('/followUser', authenticateToken, userController.followUser);
 router.post('/unFollowUser', authenticateToken, userController.unfollowUser);
 router.get('/getUser', authenticateToken, userController.getUser);
+router.get('/getUserProfilePhoto/:username', userController.getUserProfilePhoto);
 router.get('/getUserFromUsername', optionalAuthenticateToken, userController.getUserFromUsername);
 router.get('/getSelfInfo', authenticateToken, userController.getSelfInfo);
 router.get('/getFollowRequests', authenticateToken, userController.getFollowRequests);
+router.post('/updatePrivacy', authenticateToken, userController.updatePrivacy);
+router.post('/updateProfile', authenticateToken, userController.updateProfile);
+router.post('/updatePasword', authenticateToken, userController.updatePassword);
 
 export default router;

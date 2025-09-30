@@ -3,10 +3,6 @@ import {Schema, model, Types} from "mongoose";
 
 
 const schema = new Schema({
-    id:{
-        type:String,
-        required: true,
-    },
     account_id:{
         type:String,
         required: true,
@@ -20,7 +16,13 @@ const schema = new Schema({
     created:{
         type:String,
         default:moment().locale('tr').format('lll').toString()
-    }
+    },
+    likes:[String],
+    comments:[{
+        username:String,
+        content:String,
+        likes:[String]
+    }]
 });
 
 export default model('post', schema);   

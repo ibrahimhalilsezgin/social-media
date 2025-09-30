@@ -1,3 +1,5 @@
+import { writable, type Writable } from "svelte/store";
+
 export interface Post {
     id:string;
     account_id:string;
@@ -16,3 +18,8 @@ export interface Post {
     }]
     
 };
+
+export const selectedPost: Writable<null> = writable(null);
+export let showPostModal: Writable<boolean> = writable(false);
+export let showLikesModal: Writable<boolean> = writable(false);
+export let comment:Writable<string> = writable('');
