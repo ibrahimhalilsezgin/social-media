@@ -4,6 +4,7 @@ import userModel from "./user.model";
 import {hashSync,compareSync} from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendNotification } from "../../utils/notification";
+import path from "path";
 
 class userController {
     async createAccount(req:Request, res:Response) {
@@ -83,36 +84,30 @@ class userController {
           created: user.created,
           createdAt: user.createdAt,
           status: user.status,
-          verified: user.verified
+          verified: user.verified 
       });
     };
 
-    async getUserProfilePhoto(req: Request, res: Response) {
-      try {
-        const user = await userModel.findOne({ username: req.params.username });
-        if (!user || !user.profilePhoto) {
-          return res.status(404).send("Kullanıcı bulunamadı veya fotoğraf yok.");
-        }
-
-        let base64String = user.profilePhoto;
-
-        // Eğer data URI prefix varsa çıkar
-        if (base64String.startsWith("data:")) {
-          base64String = base64String.split(",")[1];
-        }
-
-        const buffer = Buffer.from(base64String, "base64");
-
-        const mimeType = "image/png";
-
-        res.setHeader("Content-Type", mimeType);
-        res.setHeader("Content-Length", buffer.length.toString());
-        res.send(buffer);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send("Fotoğraf yüklenirken hata oluştu.");
-      }
+async getUserProfilePhoto(req: Request, res: Response) {
+  try {
+    if (req.params.username === "default-avatar.jpeg") {
+      return res.sendFile(path.join(__dirname, "../../profilePhotos/default-avatar.jpeg"));
     }
+
+    const user = await userModel.findOne({ username: req.params.username });
+    if (!user || !user.profilePhoto) {
+      return res.status(404).send("Kullanıcı bulunamadı veya fotoğraf yok.");
+    }
+
+    const photoPath = path.join(__dirname, "../../profilePhotos", user.username + '.jpeg');
+    res.sendFile(photoPath);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Fotoğraf yüklenirken hata oluştu.");
+  }
+}
+
+
 
 
     async getSelfInfo(req:Request, res:Response) {
@@ -215,6 +210,7 @@ class userController {
         sendNotification(req, fUser.username,{
           title: 'Yeni Takip İsteği',
           content: `${req.user.username} Takip İsteği Gönderdi.`,
+          url:''
         })
 
         return res.status(200).send('Takip isteği yollandı');
@@ -235,6 +231,7 @@ class userController {
       sendNotification(req, fUser.username,{
         title: 'Yeni Takipçi',
         content: `${req.user.username} Takip Etti.`,
+        url:''
       })
       return res.status(200).send('Takip edildi.');
     };
@@ -243,7 +240,7 @@ class userController {
       if(!user) return;
 
       let { username } = req.body;
-      if(!username == user.username) return res.status(422).send('Kendini kendinden cikartamazsın a - a = a.');
+      if(username == user.username) return res.status(422).send('Kendini kendinden cikartamazsın a - a = a.');
       const fUser = await userModel.findOne({ username })
       if(!fUser) return res.status(404).send('Kullanıcı bulunamadı.');
       if(!user.following.includes(fUser.username)) return res.status(500).send('Zaten bu kişiyi takip etmiyorsun.');
@@ -414,6 +411,22 @@ class userController {
 
       
     }
+
+    
+    async updateProfilePhoto(req:Request, res:Response) {
+      const file = req.file;
+
+      const user = await userModel.findOne({ username: req.user.username});
+      if(!user) return ;
+
+      await userModel.findOneAndUpdate({ username: req.user.username }, {
+        profilePhoto: 'http://localhost:3000/getUserProfilePhoto/' + req.user.username
+      });
+
+      return res.status(200).send('Profil fotoğrafı başarıyla değiştirildi.');
+      
+    }
+
 
   };
 

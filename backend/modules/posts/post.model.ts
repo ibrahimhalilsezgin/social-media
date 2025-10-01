@@ -1,5 +1,5 @@
 import moment from "moment";
-import {Schema, model, Types} from "mongoose";
+import {Schema, model} from "mongoose";
 
 
 const schema = new Schema({
@@ -22,6 +22,10 @@ const schema = new Schema({
         username:String,
         content:String,
         likes:[String]
+    }],
+    category:[{
+        type:String,
+        enum:["general", "sport", "food", "music", "politic", "animals", "fitness", "travel"]
     }]
 });
 

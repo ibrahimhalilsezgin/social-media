@@ -1,12 +1,63 @@
 import { NextFunction, Request, Response } from "express";
-import { Post } from "./post.inferface";
+import { Post } from "./post.interface";
 import postModel from "./post.model";
-import path from "path";
 import userModel from "../user/user.model";
-import fs from "fs";
-import { authenticateToken } from "../../middleware/authentication";
 import { sendNotification } from "../../utils/notification";
+const categorys = {
+    sport:["basketbol", "voleybol", "futbol", "tenis", "koşu", "şınav", "mekik"],
+    music:["müzik", "şarkı", "albüm", "konser"],
+    food:["yemek", "tarif", "kahve", "içecek", "kola", "tea", "çay"],
+    politic:["politika", "siyaset", "chp", "akp","mhp"],
+    fitness:["fitness", "spor", "ağırlık", "gym"],
+    animals:["kedi", "köpek", "kuş", "hayvan", "papağan"],
+    travel: ["gezi", "tur", "yurt dışı", "tatil", "otel", "hotel", "hostel"]
+};
 class postController {
+
+async home(req: Request, res: Response) {
+    try {
+        const user = await userModel.findOne({ username: req.user.username });
+        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+
+        const likedCategories = user.likedCategories
+            .sort((a, b) => b.count - a.count)
+            .map(c => c.category);
+
+        const allPosts = await postModel.find({}).sort({ createdAt: -1 });
+
+        const postsWithPriority = allPosts.map((p:any) => {
+            let priority = likedCategories.indexOf(p.category);
+            if (priority === -1) priority = likedCategories.length; 
+            return { post: p, priority };
+        });
+
+        postsWithPriority.sort((a, b) => a.priority - b.priority);
+
+        const visiblePosts = [];
+
+        for (const item of postsWithPriority) {
+            const p = item.post;
+            const postUser = await userModel.findOne({ id: p.account_id });
+            if (!postUser) continue;
+            if (postUser.private) {
+                if (postUser.followers.includes(user.username) || p.account_id.toString() === user.username) {
+                    visiblePosts.push({ post: p, user: { username: postUser.username } });
+                }
+            } else {
+                visiblePosts.push({ post: p, user: { username: postUser.username } });
+            }
+        }
+
+        res.json(visiblePosts);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Bir hata oluştu" });
+    }
+}
+
+
+
+
     async createPost(req:Request, res: Response) {
         const { description }:Post = req.body;
         let image = req.file;
@@ -14,12 +65,15 @@ class postController {
             status:'ERROR',
             message: 'Herhangi bir resim girilmedi.'
         });
-        let id = Math.floor(req.user.id * Math.floor(Math.random() * req.user.id.length) + (await postModel.find({})).length)
+        let id = Math.floor(Math.floor(Math.random() * req.user.id.length) + (await postModel.find({})).length)
+        const category = detectCategory(description)
+        
         new postModel({
             id: id,
             account_id: req.user.id,
             description: description,
-            filename: req.file.filename
+            filename: req.file.filename,
+            category: category
         }).save();
         await userModel.findOneAndUpdate({ id: req.user.id }, {
             $push:{
@@ -34,7 +88,7 @@ class postController {
     async deletePost(req:Request, res: Response) {
         const { id }:Post = req.body;
         const post = await postModel.findOne({ id });
-        if(!post.account_id == req.user.id) return res.status(403).json({
+        if(post.account_id != req.user.id) return res.status(403).json({
             status:'başarısız',
             message: 'Bu postu silme yetkisine sahip değilsin.'
         });
@@ -133,10 +187,14 @@ async like(req: Request, res: Response) {
     await postModel.findOneAndUpdate({ filename }, update);
 
     if (!hasLiked && !isSelf) {
+        await addLikedCategories(req.user.username, post.description)
         sendNotification(req, postOwner.username, {
             title: 'Postun Beğenildi',
             content: `${req.user.username} postunuzu beğendi.`,
+            url:''
         });
+    } else {
+        await removeLikedCategories(req.user.username, post.description)
     }
 
     return res.status(200).json(hasLiked ? 'Beğeni geri çekildi' : 'Post beğenildi');
@@ -144,22 +202,20 @@ async like(req: Request, res: Response) {
 
     async getLikes(req: Request, res:Response) {
         const {filename} = req.body;
-
         const post = await postModel.findOne({ filename: filename });
-
         if(!post) return res.status(404).send('Post bulunamadı.');
         const postOwner = await userModel.findOne({ id: post.account_id });
-        if(!postOwner.username == req.user.username) {
+        if(postOwner.username != req.user.username) {
 
             if(postOwner.private) {
                 if(!postOwner.followers.includes(req.user.username)) {
                     return res.status(403).send('Takip etmediğin gizli bir hesabın postundaki beğenileri göremezsin.');
                 };
 
-                res.status(200).json(post.likes);
+                return res.status(200).json(post.likes);
             };
         }
-        res.status(200).json(post.likes);
+        return res.status(200).json(post.likes);
     };
     async getComments(req: Request, res:Response) {
         const {filename} = req.body;
@@ -168,17 +224,17 @@ async like(req: Request, res: Response) {
 
         if(!post) return res.status(404).send('Post bulunamadı.');
         const postOwner = await userModel.findOne({ id: post.account_id });
-        if(!postOwner.username == req.user.username) {
+        if(postOwner.username != req.user.username) {
 
             if(postOwner.private) {
                 if(!postOwner.followers.includes(req.user.username)) {
                     return res.status(403).send('Takip etmediğin gizli bir hesabın postundaki yorumları göremezsin.');
                 };
 
-                res.status(200).json(post.comments);
+               return res.status(200).json(post.comments);
             };
         }
-        res.status(200).json(post.comments);
+        return res.status(200).json(post.comments);
     };
 
 
@@ -190,7 +246,7 @@ async like(req: Request, res: Response) {
         if(!post) return res.status(404).send('Post bulunamadı.');
         const postOwner = await userModel.findOne({ id: post.account_id });
         
-        if(!postOwner.username == req.user.username) {
+        if(postOwner.username != req.user.username) {
 
             if(postOwner.private) {
                     if(!postOwner.followers.includes(req.user.username)) {
@@ -216,7 +272,8 @@ async like(req: Request, res: Response) {
             });
             sendNotification(req, postOwner.username, {
                 title:`Postuna yorum yapıldı`,
-                content:`${req.user.username} postuna yorum yaptı`
+                content:`${req.user.username} postuna yorum yaptı`,
+                url:''
             });
             return res.status(200).json('Yorum Yapıldı');
     }
@@ -226,5 +283,59 @@ async like(req: Request, res: Response) {
     // yorum silme (post sahibi ve yorum sahibi veya ADMİN)
 
 };
+function detectCategory(postText: string) {
+    let category: string[] = [];
+    for (const [keyword, value] of Object.entries(categorys)) {
+        for (const v of value) {
+            if (postText.toLowerCase().includes(v.toLowerCase()) || postText.includes(`#${v.toLowerCase()}`)) {
+                if (!category.includes(keyword)) category.push(keyword); // tekrar eklememek için
+            }
+        }
+    }
+
+    if (category.length === 0) {
+        category.push("general");
+    }
+
+    return category;
+};
+
+async function addLikedCategories(username: string, postText: string) {
+    const user = await userModel.findOne({ username });
+    if (!user) return;
+
+    const detectedCategories = detectCategory(postText);
+
+    detectedCategories.forEach(category => {
+        const existing = user.likedCategories.find(c => c.category === category);
+        if (existing) {
+            existing.count += 1;
+        } else {
+            user.likedCategories.push({ category, count: 1 });
+        }
+    });
+
+    await user.save();
+}
+
+async function removeLikedCategories(username: string, postText: string) {
+    const user = await userModel.findOne({ username });
+    if (!user) return;
+
+    const detectedCategories = detectCategory(postText);
+
+    detectedCategories.forEach(category => {
+        const existing = user.likedCategories.find(c => c.category === category);
+        if (existing) {
+            existing.count -= 1;
+            if (existing.count <= 0) {
+                user.likedCategories.pull(existing);
+            }
+        }
+    });
+
+    await user.save();
+}
+
 
 export default new postController();

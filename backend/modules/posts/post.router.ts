@@ -9,10 +9,10 @@ const storage = multer.diskStorage({
   destination: function (req:Request, file, cb) {
       const user = req.user.username
       if(!user) return;
-      const uploadPath = path.join('../../uploads', user);
-
-      fs.mkdirSync(uploadPath, { recursive: true})
-      cb(null, uploadPath); // 'uploads' klasörüne kaydet
+      const uploadPath = path.join(__dirname, 'uploads', user);
+    
+      fs.mkdirSync(uploadPath, { recursive: true })
+      cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
 
@@ -31,7 +31,8 @@ router.delete('/delete', authenticateToken, postController.deletePost);
 router.get('/getUserPosts', authenticateToken, postController.getUserPosts);
 router.post('/like', authenticateToken, postController.like);
 router.post('/getLikes', authenticateToken, postController.getLikes);
-
 router.post('/createComment', authenticateToken, postController.createComment);
 router.post('/getComments', authenticateToken, postController.getComments);
+router.delete('/delete', authenticateToken, postController.deletePost);
+router.get('/', authenticateToken, postController.home)
 export default router;

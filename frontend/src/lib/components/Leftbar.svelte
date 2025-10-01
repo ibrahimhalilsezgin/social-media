@@ -9,6 +9,22 @@ export let user;
 let search = '';
 let mode = 0;
 let requests: any = [];
+let isOpen = false;
+
+// Sidebar'ı toggle etmek için
+function toggleSidebar() {
+    isOpen = !isOpen;
+}
+
+// Dışarı tıklandığında sidebar'ı kapatmak için
+function handleOutsideClick(event: MouseEvent) {
+    const sidebar = document.getElementById('sidebar');
+    const hamburger = document.getElementById('hamburger-btn');
+    
+    if (sidebar && hamburger && !sidebar.contains(event.target as Node) && !hamburger.contains(event.target as Node)) {
+        isOpen = false;
+    }
+}
 
 // sadece browser'da çalıştır
 if (browser) {
@@ -39,10 +55,46 @@ $: if (browser && mode == 3) {
 }
 </script>
 
+<!-- Hamburger Button - Mobile Only -->
+<button 
+    id="hamburger-btn"
+    class="lg:hidden fixed top-4 left-4 z-50 bg-slate-800 hover:bg-slate-700 p-3 rounded-xl border border-slate-600 transition-all duration-300"
+    on:click={toggleSidebar}
+    aria-label="Menu"
+>
+    <i class="fa-solid fa-bars text-purple-400 text-xl"></i>
+</button>
+
+<!-- Overlay for mobile -->
+{#if isOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div 
+        class="lg:hidden fixed inset-0 bg-black/50 z-40" 
+        on:click={handleOutsideClick}
+    ></div>
+{/if}
+
 {#if mode == 0}
-    <div class="flex flex-col left-0 h-screen fixed w-1/5 z-[0] bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800">
+    <div 
+        id="sidebar"
+        class="flex flex-col h-screen fixed z-50 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800 transition-transform duration-300 ease-in-out
+               lg:w-1/5 lg:left-0 lg:translate-x-0 lg:z-0
+               w-80 {isOpen ? 'translate-x-0' : '-translate-x-full'}"
+    >
+        <!-- Close Button - Mobile Only -->
+        <div class="lg:hidden flex justify-end p-4 border-b border-slate-800">
+            <button 
+                class="text-purple-400 hover:text-purple-300 p-2 rounded-lg hover:bg-slate-800 transition-all"
+                on:click={toggleSidebar}
+                aria-label="Kapat"
+            >
+                <i class="fa-solid fa-x text-xl"></i>
+            </button>
+        </div>
+
         <!-- Arama Bölümü -->
-        <div class="p-6 pt-8">
+        <div class="p-6 lg:pt-8 pt-4">
             <div class="relative">
                 <input 
                     type="text" 
@@ -51,7 +103,7 @@ $: if (browser && mode == 3) {
                     bind:value={search}
                 > 
                 <button 
-                    on:click={() => window.location.assign('/' + search)} 
+                    on:click={() => {goto('/' + search); isOpen = false;}} 
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-300 transition-colors"
                     aria-label="Ara"
                 >
@@ -65,7 +117,7 @@ $: if (browser && mode == 3) {
             <div class="space-y-2">
                 <button 
                     class="w-full group hover:bg-slate-800 h-14 text-lg items-center flex cursor-pointer gap-4 rounded-xl pl-6 transition-all duration-300 hover:translate-x-1" 
-                    on:click={() => window.location.assign('/')}
+                    on:click={() => {goto('/'); isOpen = false;}}
                 >
                     <i class="fa-solid fa-house text-purple-400 group-hover:text-purple-300 transition-colors w-6"></i>
                     <span class="group-hover:text-white transition-colors">Anasayfa</span>
@@ -73,6 +125,7 @@ $: if (browser && mode == 3) {
 
                 <button 
                     class="w-full group hover:bg-slate-800 h-14 text-lg items-center flex cursor-pointer gap-4 rounded-xl pl-6 transition-all duration-300 hover:translate-x-1"
+                    on:click={() => isOpen = false}
                 >
                     <i class="fa-solid fa-comment text-purple-400 group-hover:text-purple-300 transition-colors w-6"></i>
                     <span class="group-hover:text-white transition-colors">Mesajlar</span>
@@ -80,7 +133,7 @@ $: if (browser && mode == 3) {
 
                 <button 
                     class="w-full group hover:bg-slate-800 h-14 text-lg items-center flex cursor-pointer gap-4 rounded-xl pl-6 transition-all duration-300 hover:translate-x-1"
-                    on:click={() => mode = 2}
+                    on:click={() => {mode = 2; isOpen = false;}}
                     >
                     <i class="fa-solid fa-bell text-purple-400 group-hover:text-purple-300 transition-colors w-6"></i>
                     <span class="group-hover:text-white transition-colors">Bildirimler</span>
@@ -89,7 +142,7 @@ $: if (browser && mode == 3) {
                 <button 
                     class="w-full group hover:bg-slate-800 h-14 text-lg items-center flex cursor-pointer gap-4 rounded-xl pl-6 transition-all duration-300 hover:translate-x-1 relative" 
                     aria-label="Takip İstekleri" 
-                    on:click={() => mode = 3}
+                    on:click={() => {mode = 3; isOpen = false;}}
                 >
                     <i class="fa-solid fa-user-plus text-purple-400 group-hover:text-purple-300 transition-colors w-6"></i>
                     <span class="group-hover:text-white transition-colors">Takip İstekleri</span>
@@ -109,7 +162,7 @@ $: if (browser && mode == 3) {
                     <img src="{user.profilePhoto}" alt="" class="rounded-full w-12 h-12 object-cover ring-2 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all">
                     <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900"></div>
                 </div>
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0" on:click={() => goto('/'+user.username)}>
                     <p class="text-white font-semibold truncate group-hover:text-purple-300 transition-colors">{user.username}</p>
                     <p class="text-slate-400 text-sm">@{user.username}</p>
                 </div>
@@ -117,9 +170,14 @@ $: if (browser && mode == 3) {
         </div>
     </div>
     {:else if mode == 2}
-     <div class="flex flex-col left-0 h-screen fixed w-1/5 z-[0] bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800">
-        <!-- Geri Butonu -->
-        <div class="p-6 pt-8 border-b border-slate-800">
+     <div 
+        id="sidebar"
+        class="flex flex-col h-screen fixed z-50 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800 transition-transform duration-300 ease-in-out
+               lg:w-1/5 lg:left-0 lg:translate-x-0 lg:z-0
+               w-80 {isOpen ? 'translate-x-0' : '-translate-x-full'}"
+    >
+        <!-- Geri Butonu ve Close Button -->
+        <div class="p-6 pt-8 border-b border-slate-800 flex justify-between items-center">
             <button 
                 class="flex items-center gap-3 text-purple-400 hover:text-purple-300 transition-colors group" 
                 on:click={() => mode = 0} 
@@ -127,6 +185,14 @@ $: if (browser && mode == 3) {
             >
                 <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
                 <span class="text-xl font-semibold">Bildirimler</span>
+            </button>
+            <!-- Close Button - Mobile Only -->
+            <button 
+                class="lg:hidden text-purple-400 hover:text-purple-300 p-2 rounded-lg hover:bg-slate-800 transition-all"
+                on:click={toggleSidebar}
+                aria-label="Kapat"
+            >
+                <i class="fa-solid fa-x text-lg"></i>
             </button>
         </div>
 
@@ -150,9 +216,14 @@ $: if (browser && mode == 3) {
         </div>
 
     {:else if mode == 3}
-    <div class="flex flex-col left-0 h-screen fixed w-1/5 z-[0] bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800">
-        <!-- Geri Butonu -->
-        <div class="p-6 pt-8 border-b border-slate-800">
+    <div 
+        id="sidebar"
+        class="flex flex-col h-screen fixed z-50 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800 transition-transform duration-300 ease-in-out
+               lg:w-1/5 lg:left-0 lg:translate-x-0 lg:z-0
+               w-80 {isOpen ? 'translate-x-0' : '-translate-x-full'}"
+    >
+        <!-- Geri Butonu ve Close Button -->
+        <div class="p-6 pt-8 border-b border-slate-800 flex justify-between items-center">
             <button 
                 class="flex items-center gap-3 text-purple-400 hover:text-purple-300 transition-colors group" 
                 on:click={() => mode = 0} 
@@ -160,6 +231,14 @@ $: if (browser && mode == 3) {
             >
                 <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
                 <span class="text-xl font-semibold">Takip İstekleri</span>
+            </button>
+            <!-- Close Button - Mobile Only -->
+            <button 
+                class="lg:hidden text-purple-400 hover:text-purple-300 p-2 rounded-lg hover:bg-slate-800 transition-all"
+                on:click={toggleSidebar}
+                aria-label="Kapat"
+            >
+                <i class="fa-solid fa-x text-lg"></i>
             </button>
         </div>
 
@@ -183,12 +262,12 @@ $: if (browser && mode == 3) {
                                     src="{request.profilePhoto}" 
                                     alt="" 
                                     class="w-12 h-12 rounded-full object-cover cursor-pointer ring-2 ring-slate-700 hover:ring-purple-500 transition-all" 
-                                    on:click={() => window.location.assign('/'+request.username)}
+                                    on:click={() => {goto('/'+request.username); isOpen = false;}}
                                 >
                                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                                 <span 
                                     class="text-white font-semibold cursor-pointer hover:text-purple-300 transition-colors flex-1" 
-                                    on:click={() => window.location.assign('/'+request.username)}
+                                    on:click={() => {goto('/'+request.username); isOpen = false;}}
                                 >
                                     @{request.username}
                                 </span>

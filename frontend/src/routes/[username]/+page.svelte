@@ -147,6 +147,7 @@
     }
 
     function openPost(post: any) {
+        console.log(post)
         selectedPost = post;
         getPostLikes(post);
         getPostComments(post);
@@ -235,7 +236,6 @@
         }
     };
 
-    // Edit Profile Functions
     function openEditModal() {
         editBio = data.user.bio || '';
         editPrivate = data.user.private || false;
@@ -355,26 +355,26 @@
         }
 
         const formData = new FormData();
-        formData.append('photo', selectedProfilePhoto);
+        formData.append('file', selectedProfilePhoto);
 
         try {
-            // const response = await axios({
-            //     url: 'http://localhost:3000/updateProfilePhoto',
-            //     method: 'post',
-            //     data: formData,
-            //     headers: {
-            //         Authorization: 'Bearer ' + getCookie('token'),
-            //         'Content-Type': 'multipart/form-data'
-            //     }
-            // });
+            const response = await axios({
+                url: 'http://localhost:3000/updateProfilePhoto',
+                method: 'post',
+                data: formData,
+                headers: {
+                    Authorization: 'Bearer ' + getCookie('token'),
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
-            // if (response.status === 200) {
-            //     data.user.profilePhoto = response.data.photoUrl;
-            //     toast = 'Profil fotoğrafı güncellendi';
-            //     selectedProfilePhoto = null;
-            //     previewProfilePhoto = '';
-            //     setTimeout(() => toast = '', 3000);
-            // }
+            if (response.status === 200) {
+                data.user.profilePhoto = response.data.photoUrl;
+                toast = 'Profil fotoğrafı güncellendi';
+                selectedProfilePhoto = null;
+                previewProfilePhoto = '';
+                setTimeout(() => toast = '', 3000);
+            }
         } catch (error: any) {
             toast = error.response?.data || 'Güncelleme başarısız';
             setTimeout(() => toast = '', 3000);
@@ -401,13 +401,13 @@
 <Leftbar user={data.extUser} />
 
 {#if data.user}
-    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white ml-[20%]">
+    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white lg:ml-[20%] ml-0">
         <!-- Profile Header -->
-        <div class="max-w-5xl mx-auto px-8 pt-12 pb-8">
-            <div class="flex items-start gap-12 mb-12">
+        <div class="max-w-5xl mx-auto px-4 lg:px-8 pt-12 pb-8">
+            <div class="flex flex-col lg:flex-row items-center lg:items-start gap-6 lg:gap-12 mb-12">
                 <!-- Profile Picture -->
                 <div class="relative group">
-                    <div class="w-40 h-40 rounded-full ring-4 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all duration-300 overflow-hidden">
+                    <div class="w-32 h-32 lg:w-40 lg:h-40 rounded-full ring-4 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all duration-300 overflow-hidden">
                         <img 
                             src="{data.user.profilePhoto}" 
                             class="w-full h-full object-cover" 
@@ -425,32 +425,33 @@
                 </div>
 
                 <!-- Profile Info -->
-                <div class="flex-1 space-y-6">
+                <div class="flex-1 space-y-6 text-center lg:text-left">
                     <!-- Username and Actions -->
-                    <div class="flex items-center gap-6 flex-wrap">
-                        <div class="flex items-center gap-3">
-                            <h1 class="text-3xl font-bold">{data.user.username}</h1>
+                    <div class="flex flex-col lg:flex-row items-center gap-4 lg:gap-6 flex-wrap">
+                        <div class="flex items-center gap-3 justify-center lg:justify-start">
+                            <h1 class="text-2xl lg:text-3xl font-bold">{data.user.username}</h1>
                             {#if data.user.verified}
                                 <i class="fa-solid fa-certificate text-sky-500 text-2xl"></i>
                             {/if}
                         </div>
 
                         {#if data.user.username == data.usr?.username}
-                            <div class="flex gap-3">
+                            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                                 <button 
                                     on:click={openEditModal}
-                                    class="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-all hover:scale-105"
+                                    class="px-4 lg:px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-all hover:scale-105 text-sm lg:text-base"
                                 >
                                     <i class="fa-solid fa-gear mr-2"></i>
-                                    Profili Düzenle
+                                    <span class="hidden sm:inline">Profili Düzenle</span>
+                                    <span class="sm:hidden">Düzenle</span>
                                 </button>
-                                <button class="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-all hover:scale-105">
+                                <button class="px-4 lg:px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-all hover:scale-105 text-sm lg:text-base">
                                     <i class="fa-solid fa-box-archive mr-2"></i>
                                     Arşiv
                                 </button>
                             </div>
                         {:else}
-                            <div class="flex gap-3">
+                            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                                 {#if isFollowRequestSended}
                                     <button 
                                         on:click={cancelFollowRequest}
@@ -486,24 +487,24 @@
                     </div>
 
                     <!-- Stats -->
-                    <div class="flex gap-8">
+                    <div class="flex gap-4 lg:gap-8 justify-center lg:justify-start">
                         <button class="group text-center hover:scale-105 transition-transform">
-                            <div class="text-2xl font-bold group-hover:text-purple-400 transition-colors">
+                            <div class="text-xl lg:text-2xl font-bold group-hover:text-purple-400 transition-colors">
                                 {data.user.posts.length}
                             </div>
-                            <div class="text-slate-400 text-sm">Gönderi</div>
+                            <div class="text-slate-400 text-xs lg:text-sm">Gönderi</div>
                         </button>
                         <button class="group text-center hover:scale-105 transition-transform">
-                            <div class="text-2xl font-bold group-hover:text-purple-400 transition-colors">
+                            <div class="text-xl lg:text-2xl font-bold group-hover:text-purple-400 transition-colors">
                                 {data.user.followers.length}
                             </div>
-                            <div class="text-slate-400 text-sm">Takipçi</div>
+                            <div class="text-slate-400 text-xs lg:text-sm">Takipçi</div>
                         </button>
                         <button class="group text-center hover:scale-105 transition-transform">
-                            <div class="text-2xl font-bold group-hover:text-purple-400 transition-colors">
+                            <div class="text-xl lg:text-2xl font-bold group-hover:text-purple-400 transition-colors">
                                 {data.user.following.length}
                             </div>
-                            <div class="text-slate-400 text-sm">Takip</div>
+                            <div class="text-slate-400 text-xs lg:text-sm">Takip</div>
                         </button>
                     </div>
 
@@ -528,7 +529,7 @@
         </div>
 
         <!-- Posts Grid -->
-        <div class="max-w-5xl mx-auto px-8 pb-12">
+        <div class="max-w-5xl mx-auto px-4 lg:px-8 pb-12">
             {#if !isFollowing && data.user.private}
                 <!-- Private Account Message -->
                 <div class="flex flex-col items-center justify-center py-20 space-y-6">
@@ -571,7 +572,7 @@
                 </div>
             {:else}
                 <!-- Posts Grid -->
-                <div class="grid grid-cols-3 gap-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
                     {#each a as post, i}
                         <button 
                             on:click={() => openPost(post)}
@@ -701,6 +702,7 @@
 
                             <!-- Bio -->
                             <div>
+                                <!-- svelte-ignore a11y_label_has_associated_control -->
                                 <label class="block text-sm font-semibold mb-2 text-slate-300">
                                     <i class="fa-solid fa-align-left mr-2"></i>
                                     Biyografi
@@ -759,6 +761,7 @@
                     {:else if activeEditTab === 'password'}
                         <div class="space-y-6">
                             <div>
+                                <!-- svelte-ignore a11y_label_has_associated_control -->
                                 <label class="block text-sm font-semibold mb-2 text-slate-300">
                                     <i class="fa-solid fa-key mr-2"></i>
                                     Eski Şifre
@@ -771,6 +774,7 @@
                                 >
                             </div>
                             <!-- New Password -->
+                            <!-- svelte-ignore a11y_label_has_associated_control -->
                             <div>
                                 <label class="block text-sm font-semibold mb-2 text-slate-300">
                                     <i class="fa-solid fa-key mr-2"></i>
@@ -786,6 +790,7 @@
 
                             <!-- Confirm Password -->
                             <div>
+                                <!-- svelte-ignore a11y_label_has_associated_control -->
                                 <label class="block text-sm font-semibold mb-2 text-slate-300">
                                     <i class="fa-solid fa-check-circle mr-2"></i>
                                     Şifreyi Onayla
@@ -873,7 +878,7 @@
             transition:fade
         >
             <div 
-                class="relative max-w-6xl w-full bg-slate-900 rounded-2xl overflow-hidden flex max-h-[90vh]"
+                class="relative max-w-6xl w-full bg-slate-900 rounded-2xl overflow-hidden flex flex-col lg:flex-row max-h-[90vh]"
                 on:click|stopPropagation
                 transition:scale
             >
@@ -885,12 +890,12 @@
                 </button>
 
                 <!-- Left Side - Image -->
-                <div class="flex-1 bg-black flex items-center justify-center">
-                    <img src="{selectedPost.blob}" class="max-w-full max-h-[90vh] object-contain" alt="Post">
+                <div class="flex-1 bg-black flex items-center justify-center lg:max-h-[90vh] max-h-[50vh]">
+                    <img src="{selectedPost.blob}" class="max-w-full max-h-full object-contain" alt="Post">
                 </div>
 
                 <!-- Right Side - Comments Section -->
-                <div class="w-[400px] flex flex-col bg-slate-900">
+                <div class="w-full lg:w-[400px] flex flex-col bg-slate-900 lg:max-h-[90vh] max-h-[40vh]">
                     <!-- User Header -->
                     <div class="flex items-center gap-3 p-4  border-slate-800">
                         <img 
@@ -956,7 +961,8 @@
                     <div class="border-t border-slate-800 p-4 space-y-3">
                         <!-- Like, Comment, Share Buttons -->
                         <div class="flex items-center gap-4">
-                            {#if postLikes.includes(data.usr.username)}
+
+                            {#if postLikes.includes(data.user.username)}
                                 <button class="hover:text-red-500 transition-colors" on:click={() => likePost(selectedPost)}>
                                     <i class="fa-solid fa-heart text-2xl text-red-500"></i>
                                 </button>
