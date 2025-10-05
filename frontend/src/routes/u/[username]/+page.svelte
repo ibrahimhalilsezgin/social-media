@@ -1,10 +1,12 @@
 <script lang="ts">
     import axios from 'axios';
-    import { getCookie } from '../../utils/cookies.util.js';
+    import { getCookie } from '$lib/utils/cookies.util.js';
     import { fade, fly, scale } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import Leftbar from '$lib/components/Leftbar.svelte';
     import { type Post } from '$lib/stores/post.store.js';
+	import Seo from '$lib/components/Seo.svelte';
+    import { PUBLIC_BACKEND_URL } from '$env/static/public';
     export let data;
 
     let toast = '';
@@ -16,7 +18,7 @@
     let showLikesModal = false;
     let showEditModal = false;
     let a:any = [];
-    isFollowRequestSended = data.extUser.sendedFollowRequets.includes(data.user.username) ?? false;
+    isFollowRequestSended = data.extUser?.sendedFollowRequets?.includes(data.user.username) ?? false;
 
     // Edit modal fields
     let editBio = data.user.bio || '';
@@ -29,7 +31,7 @@
     let activeEditTab: 'general' | 'privacy' | 'password' = 'general';
 
     onMount(() => {
-        isFollowing = data.extUser.following?.includes(data.user?.username) ?? false;
+        isFollowing = data.extUser?.following?.includes(data.user?.username) ?? false;
         if(data.user.username == data.usr?.username)
         {
             isFollowRequestSended = false;
@@ -40,7 +42,7 @@
         posts.forEach(async (post:any) => {
             const image = await axios({
                 method:'get',
-                url:`http://localhost:3000/posts/get/${data.user.username}/${post}`,
+                url:`${PUBLIC_BACKEND_URL}/posts/get/${post}`,
                 responseType:'blob',
                 headers:{
                     Authorization: 'Bearer ' + getCookie('token')
@@ -48,7 +50,7 @@
             });
             const info:Post = (await axios({
                 method:'GET',
-                url: `http://localhost:3000/posts/getInfo/${data.user.username}/${post}`,
+                url: `${PUBLIC_BACKEND_URL}/posts/getInfo/${data.user.username}/${post}`,
                 headers:{
                     Authorization: 'Bearer ' + getCookie('token')
                 }
@@ -71,7 +73,7 @@
     const followUser = async () => {
         try {
             const response = await axios({
-                url:'http://localhost:3000/followUser',
+                url:`${PUBLIC_BACKEND_URL}/followUser`,
                 method:'post',
                 data:{
                     username: data.user.username
@@ -100,7 +102,7 @@
     const unFollowUser = async () => {
         try {
             const response = await axios({
-                url:'http://localhost:3000/unFollowUser',
+                url:`${PUBLIC_BACKEND_URL}/unFollowUser`,
                 method:'post',
                 data:{
                     username: data.user.username
@@ -124,7 +126,7 @@
     const cancelFollowRequest = async () => {
         try {
             const response = await axios({
-                url:'http://localhost:3000/cancelFollowRequest',
+                url:`${PUBLIC_BACKEND_URL}/cancelFollowRequest`,
                 method:'post',
                 data:{
                     username: data.user.username
@@ -163,7 +165,7 @@
     const getPostLikes = async (post:any) => {
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/getLikes`,
+                url:`${PUBLIC_BACKEND_URL}/posts/getLikes`,
                 method:'post',
                 data:{
                     filename: post.filename
@@ -181,7 +183,7 @@
     const getPostComments = async (post:any) => {
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/getComments`,
+                url:`${PUBLIC_BACKEND_URL}/posts/getComments`,
                 method:'post',
                 data:{
                     filename: post.filename
@@ -199,7 +201,7 @@
     const likePost = async (post:any) => {
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/like`,
+                url:`${PUBLIC_BACKEND_URL}/posts/like`,
                 method:'post',
                 data:{
                     filename: post.filename
@@ -218,7 +220,7 @@
     const sendComment = async (post:any) => {
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/createComment`,
+                url:`${PUBLIC_BACKEND_URL}/posts/createComment`,
                 method:'post',
                 data:{
                     filename: post.filename,
@@ -264,7 +266,7 @@
     async function updateProfile() {
         try {
             const response = await axios({
-                url: 'http://localhost:3000/updateProfile',
+                url: `${PUBLIC_BACKEND_URL}/updateProfile`,
                 method: 'post',
                 data: {
                     bio: editBio
@@ -288,7 +290,7 @@
     async function updatePrivacy() {
         try {
             const response = await axios({
-                url: 'http://localhost:3000/updatePrivacy',
+                url: `${PUBLIC_BACKEND_URL}/updatePrivacy`,
                 method: 'post',
                 data: {
                     priv: editPrivate
@@ -324,7 +326,7 @@
 
         try {
             const response = await axios({
-                url: 'http://localhost:3000/updatePassword',
+                url: `${PUBLIC_BACKEND_URL}/updatePassword`,
                 method: 'post',
                 data: {
                     oldPassword:oldPassword,
@@ -359,7 +361,7 @@
 
         try {
             const response = await axios({
-                url: 'http://localhost:3000/updateProfilePhoto',
+                url: `${PUBLIC_BACKEND_URL}/updateProfilePhoto`,
                 method: 'post',
                 data: formData,
                 headers: {
@@ -399,7 +401,7 @@
 </script>
 
 <Leftbar user={data.extUser} />
-
+<Seo title={data.user.username} description={data.user.username} image={data.user.profilePhoto} />
 {#if data.user}
     <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white lg:ml-[20%] ml-0">
         <!-- Profile Header -->
@@ -415,6 +417,7 @@
                         >
                     </div>
                     {#if data.user.username == data.usr?.username}
+                        <!-- svelte-ignore a11y_consider_explicit_label -->
                         <button 
                             on:click={openEditModal}
                             class="absolute bottom-2 right-2 bg-purple-600 hover:bg-purple-700 p-3 rounded-full shadow-lg transition-all hover:scale-110"
@@ -452,7 +455,16 @@
                             </div>
                         {:else}
                             <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                                {#if isFollowRequestSended}
+                                {#if !data.usr}
+                                    <!-- Giriş yapmamış kullanıcılar için -->
+                                    <button 
+                                        class="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold transition-all hover:scale-105"
+                                        on:click={() => window.location.href = '/auth'}
+                                    >
+                                        <i class="fa-solid fa-sign-in-alt mr-2"></i>
+                                        Takip Etmek İçin Giriş Yap
+                                    </button>
+                                {:else if isFollowRequestSended}
                                     <button 
                                         on:click={cancelFollowRequest}
                                         class="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all hover:scale-105 flex items-center gap-2"
@@ -478,10 +490,12 @@
                                         Takip Et
                                     </button>
                                 {/if}
-                                <button class="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-all hover:scale-105">
-                                    <i class="fa-solid fa-envelope mr-2"></i>
-                                    Mesaj Gönder
-                                </button>
+                                {#if data.usr}
+                                    <button class="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold transition-all hover:scale-105">
+                                        <i class="fa-solid fa-envelope mr-2"></i>
+                                        Mesaj Gönder
+                                    </button>
+                                {/if}
                             </div>
                         {/if}
                     </div>
@@ -530,7 +544,7 @@
 
         <!-- Posts Grid -->
         <div class="max-w-5xl mx-auto px-4 lg:px-8 pb-12">
-            {#if !isFollowing && data.user.private}
+            {#if data.user.private && (!data.usr || !isFollowing)}
                 <!-- Private Account Message -->
                 <div class="flex flex-col items-center justify-center py-20 space-y-6">
                     <div class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center ring-4 ring-slate-700">
@@ -540,7 +554,16 @@
                         <h3 class="text-2xl font-bold">Bu Hesap Gizli</h3>
                         <p class="text-slate-400">Fotoğrafları ve videoları görmek için takip et</p>
                     </div>
-                    {#if isFollowRequestSended}
+                    {#if !data.usr}
+                        <!-- Giriş yapmamış kullanıcılar için -->
+                        <button 
+                            class="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold transition-all hover:scale-105"
+                            on:click={() => window.location.href = '/auth'}
+                        >
+                            <i class="fa-solid fa-sign-in-alt mr-2"></i>
+                            Giriş Yapın
+                        </button>
+                    {:else if isFollowRequestSended}
                         <button 
                             on:click={cancelFollowRequest}
                             class="px-8 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all hover:scale-105 flex items-center gap-2"
@@ -618,6 +641,7 @@
     <!-- Edit Profile Modal -->
     {#if showEditModal}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div 
             class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             on:click={() => showEditModal = false}
@@ -631,6 +655,7 @@
                 <!-- Header -->
                 <div class="flex items-center justify-between p-6 border-b border-slate-800">
                     <h2 class="text-2xl font-bold">Profili Düzenle</h2>
+                    <!-- svelte-ignore a11y_consider_explicit_label -->
                     <button 
                         on:click={() => showEditModal = false}
                         class="w-10 h-10 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center transition-all"
@@ -854,13 +879,14 @@
     <!-- Likes Modal -->
     {#if showLikesModal && selectedPost}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-51 flex items-center justify-center p-5" transition:fade on:click={() => showLikesModal = false} >
             <div class="bg-slate-900 h-fit w-1/4 pl-4 rounded-lg min-h-28">
                 <div class="pt-4 text-2xl">Beğeniler</div>
                 {#each postLikes as like}
                     <div>
                         <div class="flex items-center gap-4 p-5">
-                            <img src="http://localhost:3000/getUserProfilePhoto/{like}" alt="{like}" class="w-12 rounded-full">
+                            <img src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{like}" alt="{like}" class="w-12 rounded-full">
                             <div class="text-2xl font-bold">{like}</div>
                         </div>
                     </div>
@@ -870,8 +896,10 @@
     {/if}
 
     <!-- Post Modal -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     {#if showPostModal && selectedPost}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div 
             class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             on:click={() => showPostModal = false}
@@ -882,6 +910,7 @@
                 on:click|stopPropagation
                 transition:scale
             >
+                <!-- svelte-ignore a11y_consider_explicit_label -->
                 <button 
                     on:click={() => showPostModal = false}
                     class="absolute top-4 right-4 z-10 w-10 h-10 bg-slate-800/80 hover:bg-slate-700 rounded-full flex items-center justify-center transition-all"
@@ -911,6 +940,7 @@
                                 {/if}
                             </div>
                         </div>
+                        <!-- svelte-ignore a11y_consider_explicit_label -->
                         <button class="text-slate-400 hover:text-white">
                             <i class="fa-solid fa-ellipsis"></i>
                         </button>
@@ -929,7 +959,7 @@
                             {#each postComments as comment}
                                 <div class="flex gap-3">
                                     <img 
-                                        src="http://localhost:3000/getUserProfilePhoto/{comment.username}" 
+                                        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{comment.username}" 
                                         class="w-8 h-8 rounded-full ring-2 ring-slate-700 flex-shrink-0" 
                                         alt="{comment.username}"
                                     >
@@ -943,6 +973,7 @@
                                             <span>{comment.time || '1s'}</span>
                                         </div>
                                     </div>
+                                    <!-- svelte-ignore a11y_consider_explicit_label -->
                                     <button class="text-slate-500 hover:text-red-500">
                                         <i class="fa-regular fa-heart text-xs"></i>
                                     </button>
@@ -961,23 +992,32 @@
                     <div class="border-t border-slate-800 p-4 space-y-3">
                         <!-- Like, Comment, Share Buttons -->
                         <div class="flex items-center gap-4">
-
-                            {#if postLikes.includes(data.user.username)}
+                            {#if !data.usr}
+                                <!-- Giriş yapmamış kullanıcılar için -->
+                                <!-- svelte-ignore a11y_consider_explicit_label -->
+                                <button class="hover:text-red-500 transition-colors" on:click={() => window.location.href = '/auth'}>
+                                    <i class="fa-regular fa-heart text-2xl"></i>
+                                </button>
+                            {:else if postLikes.includes(data.usr.username)}
+                                <!-- svelte-ignore a11y_consider_explicit_label -->
                                 <button class="hover:text-red-500 transition-colors" on:click={() => likePost(selectedPost)}>
                                     <i class="fa-solid fa-heart text-2xl text-red-500"></i>
                                 </button>
-                                {:else}
+                            {:else}
+                                <!-- svelte-ignore a11y_consider_explicit_label -->
                                 <button class="hover:text-red-500 transition-colors" on:click={() => likePost(selectedPost)}>
                                     <i class="fa-regular fa-heart text-2xl"></i>
                                 </button>
-                                
                             {/if}
+                            <!-- svelte-ignore a11y_consider_explicit_label -->
                             <button class="hover:text-purple-400 transition-colors">
                                 <i class="fa-regular fa-comment text-2xl"></i>
                             </button>
+                            <!-- svelte-ignore a11y_consider_explicit_label -->
                             <button class="hover:text-purple-400 transition-colors">
                                 <i class="fa-regular fa-paper-plane text-2xl"></i>
                             </button>
+                            <!-- svelte-ignore a11y_consider_explicit_label -->
                             <button class="ml-auto hover:text-purple-400 transition-colors">
                                 <i class="fa-regular fa-bookmark text-2xl"></i>
                             </button>
@@ -995,15 +1035,29 @@
 
                         <!-- Comment Input -->
                         <div class="flex items-center gap-3 pt-2 border-t border-slate-800">
-                            <input 
-                                type="text" 
-                                placeholder="Yorum ekle..." 
-                                class="flex-1 bg-transparent outline-none text-sm placeholder-slate-500"
-                                bind:value={comment}
-                            >
-                            <button class="text-purple-500 font-semibold text-sm hover:text-purple-400 disabled:text-slate-600 disabled:cursor-not-allowed" on:click={() => sendComment(selectedPost)}>
-                                Paylaş
-                            </button>
+                            {#if !data.usr}
+                                <!-- Giriş yapmamış kullanıcılar için -->
+                                <input 
+                                    type="text" 
+                                    placeholder="Yorum yapmak için giriş yapın..." 
+                                    class="flex-1 bg-transparent outline-none text-sm placeholder-slate-500"
+                                    disabled
+                                    on:click={() => window.location.href = '/auth'}
+                                >
+                                <button class="text-purple-500 font-semibold text-sm hover:text-purple-400" on:click={() => window.location.href = '/auth'}>
+                                    Giriş Yap
+                                </button>
+                            {:else}
+                                <input 
+                                    type="text" 
+                                    placeholder="Yorum ekle..." 
+                                    class="flex-1 bg-transparent outline-none text-sm placeholder-slate-500"
+                                    bind:value={comment}
+                                >
+                                <button class="text-purple-500 font-semibold text-sm hover:text-purple-400 disabled:text-slate-600 disabled:cursor-not-allowed" on:click={() => sendComment(selectedPost)}>
+                                    Paylaş
+                                </button>
+                            {/if}
                         </div>
                     </div>
                 </div>

@@ -14,50 +14,46 @@ const categorys = {
 };
 class postController {
 
-async home(req: Request, res: Response) {
-    try {
-        const user = await userModel.findOne({ username: req.user.username });
-        if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    async home(req: Request, res: Response) {
+        try {
+            const user = await userModel.findOne({ username: req.user.username });
+            if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
 
-        const likedCategories = user.likedCategories
-            .sort((a, b) => b.count - a.count)
-            .map(c => c.category);
+            const likedCategories = user.likedCategories
+                .sort((a, b) => b.count - a.count)
+                .map(c => c.category);
 
-        const allPosts = await postModel.find({}).sort({ createdAt: -1 });
+            const allPosts = await postModel.find({}).sort({ createdAt: -1 });
 
-        const postsWithPriority = allPosts.map((p:any) => {
-            let priority = likedCategories.indexOf(p.category);
-            if (priority === -1) priority = likedCategories.length; 
-            return { post: p, priority };
-        });
+            const postsWithPriority = allPosts.map((p:any) => {
+                let priority = likedCategories.indexOf(p.category);
+                if (priority === -1) priority = likedCategories.length; 
+                return { post: p, priority };
+            });
 
-        postsWithPriority.sort((a, b) => a.priority - b.priority);
+            postsWithPriority.sort((a, b) => a.priority - b.priority);
 
-        const visiblePosts = [];
+            const visiblePosts = [];
 
-        for (const item of postsWithPriority) {
-            const p = item.post;
-            const postUser = await userModel.findOne({ id: p.account_id });
-            if (!postUser) continue;
-            if (postUser.private) {
-                if (postUser.followers.includes(user.username) || p.account_id.toString() === user.username) {
+            for (const item of postsWithPriority) {
+                const p = item.post;
+                const postUser = await userModel.findOne({ id: p.account_id });
+                if (!postUser) continue;
+                if (postUser.private) {
+                    if (postUser.followers.includes(user.username) || p.account_id.toString() === user.username) {
+                        visiblePosts.push({ post: p, user: { username: postUser.username } });
+                    }
+                } else {
                     visiblePosts.push({ post: p, user: { username: postUser.username } });
                 }
-            } else {
-                visiblePosts.push({ post: p, user: { username: postUser.username } });
             }
+
+            res.json(visiblePosts);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: "Bir hata oluştu" });
         }
-
-        res.json(visiblePosts);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Bir hata oluştu" });
     }
-}
-
-
-
-
     async createPost(req:Request, res: Response) {
         const { description }:Post = req.body;
         let image = req.file;
@@ -99,14 +95,16 @@ async home(req: Request, res: Response) {
             status:'başarılı',
         });
     };
-    async getPost(req:Request, res:Response) {
-        const { username, filename } = req.params;
+    async getPostImage(req:Request, res:Response) {
+        const { filename } = req.params;
         const currentUsername = req.user?.username || null;
+        const post = await postModel.findOne({ filename: filename }) 
+        if(!post) return res.status(404).send("Post bulunamadı");
+        const user = await userModel.findOne({ id: post.account_id });
 
-        const user = await userModel.findOne({ username });
         if (!user) return res.status(404).send("Kullanıcı bulunamadı");
         if(user.username == req.user?.username) {
-            return res.sendFile(`${__dirname}/uploads/${username}/${filename}`, (err) => {
+            return res.sendFile(`${__dirname}/uploads/${user.username}/${filename}`, (err) => {
             if (err) res.status(404).send("Dosya bulunamadı");
         });
         }
@@ -119,13 +117,13 @@ async home(req: Request, res: Response) {
         });
     };
     async getInfo(req:Request, res:Response) {
-        const { username, filename } = req.params;
+        const { filename } = req.params;
         const currentUsername = req.user?.username || null;
-
-        const user = await userModel.findOne({ username });
-        if (!user) return res.status(404).send("Kullanıcı bulunamadı");
+        console.log(filename)
         const post = await postModel.findOne({filename: filename});
-        if(!post) return res.status(404).send('Post Bulunamadı')
+        if(!post) return res.status(404).send('Post Bulunamadı');
+        const user = await userModel.findOne({ id: post.account_id });
+        if (!user) return res.status(404).send("Kullanıcı bulunamadı");
         if(user.username == req.user?.username) {
             return res.status(200).json(post);
         }
@@ -134,8 +132,27 @@ async home(req: Request, res: Response) {
         }
 
         return res.status(200).json(post);
-
     };
+    async postPage(req:Request, res:Response) {
+        console.log('ttest' , req.body.id)
+        const { id } = req.body;
+        console.log(id)
+        const post = await postModel.findOne({ id: id });
+        console.log(post)
+        if(!post) return res.status(404).send('Post bulunamadı.');
+        const user = await userModel.findOne({ id: post.account_id });
+        if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
+        if(req.user) {
+            if(!user.followers.includes(req.user.username)) return res.status(403).send('Kullanıcının hesabı gizlide takip etmeden postu göremezsiniz.');
+        }
+        res.status(200).json({
+            description: post.description,
+            filename: post.filename.split('.jpeg'),
+            created: post.created,
+            likes: post.likes,
+            comments: post.comments,
+        })
+    }
     async getUserPosts(req:Request, res:Response) {
         const {id} = req.body;
 
@@ -162,44 +179,43 @@ async home(req: Request, res: Response) {
         }
 
     };
-async like(req: Request, res: Response) {
-    const { filename } = req.body;
+    async like(req: Request, res: Response) {
+        const { filename } = req.body;
 
-    const post = await postModel.findOne({ filename });
-    if (!post) return res.status(404).send('Post bulunamadı.');
+        const post = await postModel.findOne({ filename });
+        if (!post) return res.status(404).send('Post bulunamadı.');
 
-    const postOwner = await userModel.findOne({ id: post.account_id });
-    if (!postOwner) return res.status(404).send('Post sahibi bulunamadı.');
+        const postOwner = await userModel.findOne({ id: post.account_id });
+        if (!postOwner) return res.status(404).send('Post sahibi bulunamadı.');
 
-    if (!req.user) return res.status(403).send('Giriş yapmanız gerekiyor.');
+        if (!req.user) return res.status(403).send('Giriş yapmanız gerekiyor.');
 
-    const isSelf = postOwner.username === req.user.username;
+        const isSelf = postOwner.username === req.user.username;
 
-    if (!isSelf && postOwner.private && !postOwner.followers.includes(req.user.username)) {
-        return res.status(403).send('Takip etmediğiniz gizli bir hesabın postunu beğenemezsiniz.');
+        if (!isSelf && postOwner.private && !postOwner.followers.includes(req.user.username)) {
+            return res.status(403).send('Takip etmediğiniz gizli bir hesabın postunu beğenemezsiniz.');
+        }
+
+        const hasLiked = post.likes.includes(req.user.username);
+        const update = hasLiked
+            ? { $pull: { likes: req.user.username } }
+            : { $push: { likes: req.user.username } };
+
+        await postModel.findOneAndUpdate({ filename }, update);
+
+        if (!hasLiked && !isSelf) {
+            await addLikedCategories(req.user.username, post.description)
+            sendNotification(req, postOwner.username, {
+                title: 'Postun Beğenildi',
+                content: `${req.user.username} postunuzu beğendi.`,
+                url:''
+            });
+        } else {
+            await removeLikedCategories(req.user.username, post.description)
+        }
+
+        return res.status(200).json(hasLiked ? 'Beğeni geri çekildi' : 'Post beğenildi');
     }
-
-    const hasLiked = post.likes.includes(req.user.username);
-    const update = hasLiked
-        ? { $pull: { likes: req.user.username } }
-        : { $push: { likes: req.user.username } };
-
-    await postModel.findOneAndUpdate({ filename }, update);
-
-    if (!hasLiked && !isSelf) {
-        await addLikedCategories(req.user.username, post.description)
-        sendNotification(req, postOwner.username, {
-            title: 'Postun Beğenildi',
-            content: `${req.user.username} postunuzu beğendi.`,
-            url:''
-        });
-    } else {
-        await removeLikedCategories(req.user.username, post.description)
-    }
-
-    return res.status(200).json(hasLiked ? 'Beğeni geri çekildi' : 'Post beğenildi');
-}
-
     async getLikes(req: Request, res:Response) {
         const {filename} = req.body;
         const post = await postModel.findOne({ filename: filename });
@@ -236,8 +252,6 @@ async like(req: Request, res: Response) {
         }
         return res.status(200).json(post.comments);
     };
-
-
     async createComment(req: Request, res: Response) {
         const {filename, content} = req.body;
         console.log(filename, content)
@@ -277,7 +291,7 @@ async like(req: Request, res: Response) {
             });
             return res.status(200).json('Yorum Yapıldı');
     }
-
+    
 
 
     // yorum silme (post sahibi ve yorum sahibi veya ADMİN)

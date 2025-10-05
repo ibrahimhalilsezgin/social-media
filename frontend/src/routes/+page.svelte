@@ -1,70 +1,71 @@
 <script lang="ts">
-	import Leftbar from "$lib/components/Leftbar.svelte";
-	import axios from "axios";
-	import { onMount } from "svelte";
-	import { getCookie } from "../utils/cookies.util.js";
-	import type { Post } from "$lib/stores/post.store.js";
-	import { fade, fly, scale } from "svelte/transition";
-	import { goto } from "$app/navigation";
-  export let data 
-  let loading:boolean = false;
-  let posts:any = []
-  let a:any = []
-  let toast = '';
-  let comment = '';
-  let selectedPost: any = null;
-  let showPostModal = false;
-  let showLikesModal = false;
-  onMount(async () => {
-    
-    try {
-      const response = await axios({
-        url:'http://localhost:3000/posts/',
-        method:'GET',
-        headers:{
-          Authorization:'Bearer ' + getCookie('token')
+    import Leftbar from "$lib/components/Leftbar.svelte";
+    import axios from "axios";
+    import { onMount } from "svelte";
+    import { getCookie } from "../lib/utils/cookies.util.js";
+    import type { Post } from "$lib/stores/post.store.js";
+    import { fade, fly, scale } from "svelte/transition";
+    import { goto } from "$app/navigation";
+
+    export let data 
+    let loading:boolean = false;
+    let posts:any = []
+    let a:any = []
+    let toast = '';
+    let comment = '';
+    let selectedPost: any = null;
+    let showPostModal = false;
+    let showLikesModal = false;
+    onMount(async () => {
+        
+        try {
+        const response = await axios({
+            url:`http://localhost:3000/posts/`,
+            method:'GET',
+            headers:{
+            Authorization:'Bearer ' + getCookie('token')
+            }
+        });
+
+        posts = response.data
+
+        for(const post of posts) {
+            const image = await axios({
+                    method:'get',
+                    url:`http://localhost:3000/posts/get/${post.user.username}/${post.post.filename}`,
+                    responseType:'blob',
+                    headers:{
+                        Authorization: 'Bearer ' + getCookie('token')
+                    }
+                });
+                const info:Post = (await axios({
+                    method:'GET',
+                    url: `http://localhost:3000/posts/getInfo/${post.user.username}/${post.post.filename}`,
+                    headers:{
+                        Authorization: 'Bearer ' + getCookie('token')
+                    }
+                })).data
+                const blob = new Blob([image.data], { type: image.data.type });
+                const f = URL.createObjectURL(blob);
+                a = [...a, {
+                    post:{
+                        id: info.id,
+                        account_id: info.account_id,
+                        description: info.description,
+                        filename: info.filename,
+                        blob: f,
+                        likes:info.likes,
+                        comments: info.comments,
+                        created: info.created,
+                        liked: info.likes.includes(data.user.username)
+                    },
+                    user:post.user
+                }]
         }
-      });
-
-      posts = response.data
-
-      for(const post of posts) {
-        const image = await axios({
-                method:'get',
-                url:`http://localhost:3000/posts/get/${post.user.username}/${post.post.filename}`,
-                responseType:'blob',
-                headers:{
-                    Authorization: 'Bearer ' + getCookie('token')
-                }
-            });
-            const info:Post = (await axios({
-                method:'GET',
-                url: `http://localhost:3000/posts/getInfo/${post.user.username}/${post.post.filename}`,
-                headers:{
-                    Authorization: 'Bearer ' + getCookie('token')
-                }
-            })).data
-            const blob = new Blob([image.data], { type: image.data.type });
-            const f = URL.createObjectURL(blob);
-            a = [...a, {
-                post:{
-                    id: info.id,
-                    account_id: info.account_id,
-                    description: info.description,
-                    filename: info.filename,
-                    blob: f,
-                    likes:info.likes,
-                    comments: info.comments,
-                    created: info.created,
-                    liked: info.likes.includes(data.user.username)
-                },
-                user:post.user
-            }]
-      }
-    } catch (error) {
-      
-    }
-  });
+        } catch (error) {
+        
+        }
+    });
 
 
     function openPost(post: any, user:any) {
@@ -167,6 +168,7 @@
   //   posts[index].isLiked = !posts[index].isLiked;
   //   posts[index].likes += posts[index].isLiked ? 1 : -1;
   // }
+
 </script>
 
 <Leftbar user={data.user} />
@@ -174,15 +176,186 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex justify-center py-4 lg:py-8 px-2 lg:px-4 lg:ml-[20%] ml-0">
   <div class="w-full max-w-2xl space-y-4 lg:space-y-6">
     <!-- Create Post Card -->
-    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-xl border border-slate-700/50 p-3 lg:p-4">
-      <div class="p-[2px] rounded-full w-fit bg-gradient-to-r from-purple-500 via-70% to-pink-500">
-          <img 
-          src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
-          alt={data.user.username} 
-          class="w-14 h-10 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-purple-500 transition-all"
-        />
-      </div>
+<!-- Scroll Container -->
+<div 
+  
+  class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-xl border border-slate-700/50 p-4 overflow-x-auto"
+>
+  <div class="flex gap-4 w-max">
+    <!-- Örnek kullanıcı avatarları -->
+    <!-- Bunu dinamik olarak çoğaltabilirsin -->
+    <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
     </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+        <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+      <img 
+        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        alt="username1" 
+        class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
+      />
+    </div>
+    
+    <!-- Diğer avatarlar... -->
+  </div>
+</div>
 
     <!-- Posts Feed -->
     {#each a as p, i}
@@ -205,6 +378,7 @@
               <p class="text-slate-400 text-xs lg:text-sm">{p.post.created}</p>
             </div>
           </div>
+          <!-- svelte-ignore a11y_consider_explicit_label -->
           <button class="text-slate-400 hover:text-white transition-colors p-2">
             <i class="fa-solid fa-ellipsis text-lg lg:text-xl"></i>
           </button>
@@ -219,6 +393,8 @@
             class="w-full aspect-square object-cover"
           />
           <!-- Double tap like animation area -->
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300" on:click={() => openPost(p.post, p.user)}></div>
         </div>
         
@@ -231,9 +407,12 @@
                 class="text-xl lg:text-2xl transition-all duration-300 hover:scale-110 active:scale-95"
                 aria-label="Beğen"
               >
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
                 {#if p.post.liked }
+                  <!-- svelte-ignore a11y_click_events_have_key_events -->
                   <i class="fa-solid fa-heart text-red-500" on:click={() => p.post.liked = false}></i>
                 {:else}
+                  <!-- svelte-ignore a11y_click_events_have_key_events -->
                   <i class="fa-regular fa-heart text-white hover:text-red-400" on:click={() => p.post.liked = true}></i>
                 {/if}
               </button>
@@ -263,7 +442,7 @@
           </div>
           
           <!-- Comments Link -->
-          <button class="text-slate-400 hover:text-slate-300 transition-colors text-xs lg:text-sm" on:click={() => openPost(p.post)}>
+          <button class="text-slate-400 hover:text-slate-300 transition-colors text-xs lg:text-sm" on:click={() => openPost(p.post, p.user)}>
             {p.post.comments.length} yorumun tümünü gör
           </button>
           
@@ -299,6 +478,7 @@
 
     {#if showLikesModal && selectedPost}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-170 flex items-center justify-center p-5" transition:fade on:click={() => showLikesModal = false} >
             <div class="bg-slate-900 h-fit w-1/4 pl-4 rounded-lg min-h-28">
                 <div class="pt-4 text-2xl">Beğeniler</div>
@@ -317,6 +497,7 @@
       {#if showPostModal && selectedPost.post}
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div 
             class="fixed inset-0 bg-black/80 backdrop-blur-sm z-150 flex items-center justify-center p-4"
             on:click={() => showPostModal = false}
@@ -327,6 +508,7 @@
                 on:click|stopPropagation
                 transition:scale
             >
+                <!-- svelte-ignore a11y_consider_explicit_label -->
                 <button 
                     on:click={() => showPostModal = false}
                     class="absolute top-4 right-4 z-10 w-10 h-10 bg-slate-800/80 hover:bg-slate-700 rounded-full flex items-center justify-center transition-all"
@@ -343,6 +525,7 @@
                 <div class="w-full lg:w-[400px] flex flex-col bg-slate-900 lg:max-h-[90vh] max-h-[40vh]">
                     <!-- User Header -->
                     <div class="flex items-center gap-3 p-4  border-slate-800">
+                        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                         <img 
                             src="http://localhost:3000/getUserProfilePhoto/{selectedPost.user.username}" 
                             class="w-10 h-10 rounded-full ring-2 ring-purple-500/30 cursor-pointer" 
@@ -357,6 +540,7 @@
                                 {/if}
                             </div>
                         </div>
+                        <!-- svelte-ignore a11y_consider_explicit_label -->
                         <button class="text-slate-400 hover:text-white">
                             <i class="fa-solid fa-ellipsis"></i>
                         </button>
@@ -389,6 +573,7 @@
                                             <span>{comment.time || '1s'}</span>
                                         </div>
                                     </div>
+                                    <!-- svelte-ignore a11y_consider_explicit_label -->
                                     <button class="text-slate-500 hover:text-red-500">
                                         <i class="fa-regular fa-heart text-xs"></i>
                                     </button>
@@ -406,9 +591,12 @@
                     <!-- Actions Bar -->
                     <div class="border-t border-slate-800 p-4 space-y-3">
                         <!-- Like, Comment, Share Buttons -->
+                        <!-- svelte-ignore a11y_consider_explicit_label -->
                         <div class="flex items-center gap-4">
 
+                            <!-- svelte-ignore a11y_consider_explicit_label -->
                             {#if selectedPost.liked}
+                                <!-- svelte-ignore a11y_consider_explicit_label -->
                                 <button class="hover:text-red-500 transition-colors" on:click={() => likePost(selectedPost)}>
                                     <i class="fa-solid fa-heart text-2xl text-red-500"></i>
                                 </button>

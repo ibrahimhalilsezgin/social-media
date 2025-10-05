@@ -8,7 +8,7 @@ export const load = async ({ locals, cookies }) => {
 
     
     const response = await axios({
-        url:'http://localhost:3000/getFollowRequests',
+        url:'https://backend.ibo.rocks/getFollowRequests',
         method:'get',
         headers:{
             Authorization: 'Bearer ' + token

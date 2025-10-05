@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getCookie } from "../../utils/cookies.util";
+import { getCookie } from "$lib/utils/cookies.util";
 
 export let error = {
     status:false,
@@ -11,7 +11,7 @@ export const acceptRequest = async (username:string) => {
     console.log(username)
     try {
         const response = await axios({
-            url:'http://localhost:3000/acceptFollowRequest',
+            url:`http://localhost:3000/acceptFollowRequest`,
             method:'post',
             data:{
                 username: username
@@ -39,7 +39,7 @@ export const acceptRequest = async (username:string) => {
 export const declineRequest = async (username:string) => {
     try {
         const response = await axios({
-            url:'http://localhost:3000/declineFollowRequest',
+            url:`http://localhost:3000/declineFollowRequest`,
             method:'post',
             data:{
                 username: username

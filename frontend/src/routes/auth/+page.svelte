@@ -1,7 +1,9 @@
 <script lang="ts">
     import axios from "axios";
-    import { setCookie } from "../../utils/cookies.util";
+    import { setCookie } from "$lib/utils/cookies.util";
     import { goto } from "$app/navigation";
+	import Seo from "$lib/components/Seo.svelte";
+    import { PUBLIC_BACKEND_URL } from '$env/static/public';
     
     let signin = true;
     let isLoading = false;
@@ -24,7 +26,7 @@
         error.status = false;
         try {
             const response = await axios({
-                url:'http://localhost:3000/signup',
+                url:`${PUBLIC_BACKEND_URL}/signup`,
                 method:'post',
                 data:{
                     username: form.input,
@@ -60,7 +62,7 @@
         error.status = false;
         try {
             const response = await axios({
-                url:'http://localhost:3000/signin',
+                url:`${PUBLIC_BACKEND_URL}/signin`,
                 method:'post',
                 data:{
                     input: form.input,
@@ -95,6 +97,7 @@
         clearError();
     }
 </script>
+<Seo title="Giriş Yap" description="Giriş yap veya kayıt ol" image=''/>
 
 <div class="min-h-screen bg-gradient-to-br from-purple-950 via-slate-900 via-75% to-pink-200 flex items-center justify-center p-4 relative overflow-hidden">
     <!-- Animated Background Elements -->

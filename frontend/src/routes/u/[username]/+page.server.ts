@@ -1,8 +1,6 @@
 import axios from 'axios';
-import { redirect } from '@sveltejs/kit';
 
 export const load = async ({ locals, params, cookies }) => {
-  if(!locals.user) return redirect(302, '/auth');
   
   let user;
   let u;
@@ -10,19 +8,20 @@ export const load = async ({ locals, params, cookies }) => {
   const token = cookies.get('token');
   if (token) {
     try {
-      const response = await axios.get('http://localhost:3000/getSelfInfo', {
+      const response = await axios.get('https://backend.ibo.rocks/getSelfInfo', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       u = response.data;
     } catch (e) {
+      console.log(e);
     }
   }
 
   try {
     if(locals.user) {
-      const response = await axios.get('http://localhost:3000/getUserFromUsername', {
+      const response = await axios.get('https://backend.ibo.rocks/getUserFromUsername', {
         data: { username: params.username }, 
         headers:{
           Authorization: 'Bearer ' + cookies.get('token')
@@ -32,7 +31,7 @@ export const load = async ({ locals, params, cookies }) => {
       console.log(response.data)
     user = response.data;
     } else {
-      const response = await axios.get('http://localhost:3000/getUserFromUsername', {
+      const response = await axios.get('https://backend.ibo.rocks/getUserFromUsername', {
         data: { username: params.username }, 
 
       });
@@ -40,6 +39,8 @@ export const load = async ({ locals, params, cookies }) => {
     user = response.data;
     }
   } catch (e) {
+      console.log(e);
+
   }
 
   if (!locals.user) {

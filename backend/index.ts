@@ -13,7 +13,7 @@ const app = express.default();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { 
     cors:{
-        origin:['http://localhost:5173']
+        origin:['http://localhost:5173', ]
     }
 });
 connectDB();
@@ -65,6 +65,6 @@ io.on("connection", (socket) => {
 
 
 
-httpServer.listen(PORT, () => {
-    console.log(`http://${process.env.domain}:${PORT} Listing.`);
+httpServer.listen(PORT, process.env.host, () => {
+    console.log(`${process.env.domain}:${PORT} Listing.`);
 });

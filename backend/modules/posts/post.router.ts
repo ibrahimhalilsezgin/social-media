@@ -24,8 +24,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 const router = Router();
 
-router.get("/get/:username/:filename", optionalAuthenticateToken,postController.getPost);
-router.get("/getInfo/:username/:filename", optionalAuthenticateToken,postController.getInfo);
+router.get("/get/:filename", optionalAuthenticateToken, postController.getPostImage);
+router.get("/getInfo/:filename", optionalAuthenticateToken, postController.getInfo);
+router.post("/postPage/", optionalAuthenticateToken, postController.postPage);
 router.post('/create', authenticateToken, upload.single("file") ,postController.createPost);
 router.delete('/delete', authenticateToken, postController.deletePost);
 router.get('/getUserPosts', authenticateToken, postController.getUserPosts);
