@@ -1,6 +1,6 @@
 import bodyParser from "body-parser";
 import cors from "cors";
-import moment from "moment";
+import geoip from "geoip-lite"
 import "dotenv/config";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
@@ -34,7 +34,7 @@ app.use(cors());
 app.use(limiter);
 app.use(bodyParser.urlencoded({}));
 app.use(bodyParser.json());
-
+app.set('trust proxy', true)
 app.use(morgan('dev'));
 
 import userRouter from "./modules/user/user.router";
@@ -43,6 +43,7 @@ import conversationRouter from "./modules/conversations/conversations.router";
 
 import { connectDB } from "./db/connect";
 import conversationsModel from "./modules/conversations/conversations.model";
+import settingsModel from "./modules/admin/settings/settings.model";
 
 app.use('/', userRouter);
 app.use('/posts/', postRouter);
@@ -63,7 +64,15 @@ app.set("io", io)
 let onlineUsers = [];
 
 
-io.on("connection", (socket) => {
+
+io.on("connection", async (socket) => {
+  const ip = getClientIpFromSocket(socket);
+  const geo = geoip.lookup(ip);
+  const country = geo?.country || 'Unknown';
+
+  await addAccessCountry(ip, country);
+
+
   const username = socket.data.user.username;
 
   if (!onlineUsers.includes(username)) {
@@ -111,7 +120,49 @@ io.on("connection", (socket) => {
     io.emit("onlineUsers", onlineUsers);
   });
 });
+function getClientIpFromSocket(socket) {
+  const headers = socket.handshake?.headers || {};
 
+  if (headers['cf-connecting-ip']) {
+    return headers['cf-connecting-ip'];
+  }
+
+  if (headers['x-forwarded-for']) {
+    const list = headers['x-forwarded-for'].split(',').map(s => s.trim());
+    if (list.length) return list[0];
+  }
+
+  if (headers['true-client-ip']) return headers['true-client-ip'];
+
+  const addr = socket.handshake.address || socket.conn?.remoteAddress;
+  if (!addr) return null;
+  console.log(addr)
+  return addr.replace('::ffff:', '');
+}
+
+async function addAccessCountry(ip, country) {
+  let settings = await settingsModel.findOne();
+  if (!settings) {
+    settings = new settingsModel({ accessCountry: [] });
+  }
+
+  let countryRecord = settings.accessCountry.find(c => c.country === country);
+
+  if (!countryRecord) {
+    settings.accessCountry.push({
+      country,
+      ipList: [ip],
+      count: 1
+    });
+  } else {
+    if (!countryRecord.ipList.includes(ip)) {
+      countryRecord.ipList.push(ip);
+      countryRecord.count++;
+    }
+  }
+
+  await settings.save();
+}
 
 
 

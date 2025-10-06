@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
 import User from "../modules/user/user.interface";
+import userModel from "../modules/user/user.model";
 export const authenticateToken = (req:Request, res:Response, next:NextFunction) => {
     const header = req.headers.authorization;
     // console.log(header)
@@ -15,7 +16,6 @@ export const authenticateToken = (req:Request, res:Response, next:NextFunction) 
     const token = header.split(" ")[1];
     try {
         const decoded:User = jwt.verify(token, process.env.SecretKey);
-
         req.user = {
             id:decoded.id,
             username:decoded.username,
@@ -53,3 +53,32 @@ export const optionalAuthenticateToken = (req: Request, res: Response, next: Nex
         next();
     }
 };
+
+export const onlyAdmin = async (req: Request, res:Response, next:NextFunction) => {
+        const header = req.headers.authorization;
+
+        if (!header || !header.startsWith("Bearer ")) {
+            // Token yoksa sadece req.user boş bırak ve devam et
+            req.user = undefined;
+            return next();
+        }
+
+        const token = header.split(" ")[1];
+
+        try {
+            const decoded: User = jwt.verify(token, process.env.SecretKey) as User;
+            const user = await userModel.findOne({ username: decoded.username });
+            if(user.adminLevel < 2) return res.status(403).send('Yetkisiz Erişim Talebi');
+
+            req.user = {
+                id: decoded.id,
+                username: decoded.username,
+                email: decoded.email,
+                adminLevel: user.adminLevel
+            };
+
+            next();
+        } catch (err) {
+            return res.status(403).send('Yetkisiz Erişim Talebi');
+        }
+}

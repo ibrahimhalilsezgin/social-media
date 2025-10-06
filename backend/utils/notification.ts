@@ -1,6 +1,4 @@
-import { connectDB } from "../db/connect";
 import userModel from "../modules/user/user.model";
-connectDB();
 
 
 export const sendNotification = async (req:any, username:string, options={title:'', content:'', url: ''}) => {
