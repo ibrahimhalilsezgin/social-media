@@ -1,3 +1,4 @@
+import { PUBLIC_BACKEND_URL } from '$env/static/public';
 import { redirect } from '@sveltejs/kit';
 import axios from 'axios';
 
@@ -8,7 +9,7 @@ export const load = async ({ locals, cookies }) => {
 
     
     const response = await axios({
-        url:'https://backend.ibo.rocks/getFollowRequests',
+        url: PUBLIC_BACKEND_URL + '/getFollowRequests',
         method:'get',
         headers:{
             Authorization: 'Bearer ' + token

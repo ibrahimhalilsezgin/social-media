@@ -3,7 +3,7 @@
 	// import { getCookie } from "$lib/utils/cookies.util";
     // import { browser } from "$app/environment";
 
-    // const socket = io("http://localhost:3000", {
+    // const socket = io(PUBLIC_BACKEND_URL, {
     //     auth: { token: getCookie('token') }
     // });
     // console.log(socket)

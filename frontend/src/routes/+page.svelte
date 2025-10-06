@@ -6,6 +6,7 @@
     import type { Post } from "$lib/stores/post.store.js";
     import { fade, fly, scale } from "svelte/transition";
     import { goto } from "$app/navigation";
+	import { PUBLIC_BACKEND_URL } from "$env/static/public";
 
     export let data 
     let loading:boolean = false;
@@ -20,7 +21,7 @@
         
         try {
         const response = await axios({
-            url:`http://localhost:3000/posts/`,
+            url:PUBLIC_BACKEND_URL + `/posts/`,
             method:'GET',
             headers:{
             Authorization:'Bearer ' + getCookie('token')
@@ -32,7 +33,7 @@
         for(const post of posts) {
             const image = await axios({
                     method:'get',
-                    url:`http://localhost:3000/posts/get/${post.user.username}/${post.post.filename}`,
+                    url:PUBLIC_BACKEND_URL + `/posts/get/${post.post.filename}`,
                     responseType:'blob',
                     headers:{
                         Authorization: 'Bearer ' + getCookie('token')
@@ -40,7 +41,7 @@
                 });
                 const info:Post = (await axios({
                     method:'GET',
-                    url: `http://localhost:3000/posts/getInfo/${post.user.username}/${post.post.filename}`,
+                    url: PUBLIC_BACKEND_URL + `/posts/getInfo/${post.post.filename}`,
                     headers:{
                         Authorization: 'Bearer ' + getCookie('token')
                     }
@@ -69,7 +70,7 @@
 
 
     function openPost(post: any, user:any) {
-        console.log(post)
+        console.log('asdafasf ' + JSON.stringify(post))
         selectedPost = {
           post:post,
           user:user
@@ -79,6 +80,7 @@
         showPostModal = true;
 
     }
+    $: console.log(selectedPost)
     function openLikesModal(post: any) {
         getPostLikes(selectedPost);
         showLikesModal = true;
@@ -89,7 +91,7 @@
     const getPostLikes = async (post:any) => {
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/getLikes`,
+                url:PUBLIC_BACKEND_URL + `/posts/getLikes`,
                 method:'post',
                 data:{
                     filename: post.post.filename
@@ -107,10 +109,10 @@
     const getPostComments = async (post:any) => {
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/getComments`,
+                url:PUBLIC_BACKEND_URL + `/posts/getComments`,
                 method:'post',
                 data:{
-                    filename: post.filename
+                    filename: selectedPost.post.filename
                 },
                 headers:{
                     Authorization: 'Bearer ' + getCookie('token')
@@ -126,7 +128,7 @@
 
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/like`,
+                url: PUBLIC_BACKEND_URL + `/posts/like`,
                 method:'post',
                 data:{
                     filename: post.filename
@@ -144,12 +146,13 @@
 
 
       const sendComment = async (post:any) => {
+        console.log(post)
         try {
             const response = await axios({
-                url:`http://localhost:3000/posts/createComment`,
+                url:PUBLIC_BACKEND_URL + `/posts/createComment`,
                 method:'post',
                 data:{
-                    filename: post.filename,
+                    filename: selectedPost.post.filename,
                     content: comment
                 },
                 headers:{
@@ -186,168 +189,168 @@
     <!-- Bunu dinamik olarak çoğaltabilirsin -->
     <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
     </div>
         <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
       <img 
-        src="http://localhost:3000/getUserProfilePhoto/{data.user.username}"
+        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 
         class="w-14 h-14 lg:w-18 lg:h-18 rounded-full object-cover border-2 cursor-pointer hover:ring-2 hover:ring-purple-500 transition-all duration-300"
       />
@@ -365,7 +368,7 @@
           <div class="flex items-center gap-3">
             <div class="relative">
               <img 
-                src="http://localhost:3000/getUserProfilePhoto/{p.user.username}"
+                src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{p.user.username}"
                 alt={p.user.username} 
                 class="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover ring-2 ring-purple-500/50 cursor-pointer hover:ring-purple-500 transition-all"
               />
@@ -485,7 +488,7 @@
                 {#each postLikes as like}
                     <div>
                         <div class="flex items-center gap-4 p-5">
-                            <img src="http://localhost:3000/getUserProfilePhoto/{like}" alt="{like}" class="w-12 rounded-full">
+                            <img src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{like}" alt="{like}" class="w-12 rounded-full">
                             <div class="text-2xl font-bold">{like}</div>
                         </div>
                     </div>
@@ -527,7 +530,7 @@
                     <div class="flex items-center gap-3 p-4  border-slate-800">
                         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                         <img 
-                            src="http://localhost:3000/getUserProfilePhoto/{selectedPost.user.username}" 
+                            src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{selectedPost.user.username}" 
                             class="w-10 h-10 rounded-full ring-2 ring-purple-500/30 cursor-pointer" 
                             alt="{selectedPost.user.username}"
                             on:click={() => goto('/' + selectedPost.user.username)}
@@ -559,7 +562,7 @@
                             {#each postComments as comment}
                                 <div class="flex gap-3">
                                     <img 
-                                        src="http://localhost:3000/getUserProfilePhoto/{comment.username}" 
+                                        src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{comment.username}" 
                                         class="w-8 h-8 rounded-full ring-2 ring-slate-700 flex-shrink-0" 
                                         alt="{comment.username}"
                                     >

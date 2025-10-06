@@ -6,6 +6,7 @@ import { goto } from "$app/navigation";
 import { declineRequest, acceptRequest } from "$lib/stores/follow.store";
 import { socket } from '$lib/socket';
 import CreatePost from './CreatePost.svelte';
+	import { PUBLIC_BACKEND_URL } from '$env/static/public';
 
 export let user;
 let search = '';
@@ -33,7 +34,7 @@ if (browser && user) {
     if(socket) 
      socket.on("followRequest", (data) => {
         axios({
-            url: `http://localhost:3000/getFollowRequests`,
+            url: `${PUBLIC_BACKEND_URL}/getFollowRequests`,
             method: 'get',
             headers: {
                 Authorization: 'Bearer ' + getCookie('token')
@@ -46,7 +47,7 @@ if (browser && user) {
 
 $: if (browser && mode == 3 && user) {
     axios({
-        url: `http://localhost:3000/getFollowRequests`,
+        url: `${PUBLIC_BACKEND_URL}/getFollowRequests`,
         method: 'get',
         headers: {
             Authorization: 'Bearer ' + getCookie('token')
@@ -175,7 +176,7 @@ $: if (browser && mode == 3 && user) {
                 </div>
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
-                <div class="flex-1 min-w-0" on:click={() => goto('/'+user.username)}>
+                <div class="flex-1 min-w-0" on:click={() => goto('/u/'+user.username)}>
                     <p class="text-white font-semibold truncate group-hover:text-purple-300 transition-colors">{user.username}</p>
                     <p class="text-slate-400 text-sm">@{user.username}</p>
                 </div>
@@ -276,13 +277,13 @@ $: if (browser && mode == 3 && user) {
                                     src="{request.profilePhoto}" 
                                     alt="" 
                                     class="w-12 h-12 rounded-full object-cover cursor-pointer ring-2 ring-slate-700 hover:ring-purple-500 transition-all" 
-                                    on:click={() => {goto('/'+request.username); isOpen = false;}}
+                                    on:click={() => {goto('/u/'+request.username); isOpen = false;}}
                                 >
                                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                                 <span 
                                     class="text-white font-semibold cursor-pointer hover:text-purple-300 transition-colors flex-1" 
-                                    on:click={() => {goto('/'+request.username); isOpen = false;}}
+                                    on:click={() => {goto('/u/'+request.username); isOpen = false;}}
                                 >
                                     @{request.username}
                                 </span>

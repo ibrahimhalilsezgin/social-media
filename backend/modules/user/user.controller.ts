@@ -420,7 +420,7 @@ async getUserProfilePhoto(req: Request, res: Response) {
       if(!user) return ;
 
       await userModel.findOneAndUpdate({ username: req.user.username }, {
-        profilePhoto: 'http://localhost:3000/getUserProfilePhoto/' + req.user.username
+        profilePhoto: ''
       });
 
       return res.status(200).send('Profil fotoğrafı başarıyla değiştirildi.');

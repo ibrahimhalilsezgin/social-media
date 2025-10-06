@@ -1,6 +1,7 @@
 <script lang="ts">
   import axios from "axios";
   import { getCookie } from "$lib/utils/cookies.util";
+	import { PUBLIC_BACKEND_URL } from "$env/static/public";
 
 
   export let show: boolean;
@@ -50,7 +51,7 @@
     error = "";
 
     try {
-      const res = await axios.post(`http://localhost:3000/posts/create`, formData, {
+      const res = await axios.post(PUBLIC_BACKEND_URL + `/posts/create`, formData, {
         headers: {
           Authorization: "Bearer " + getCookie("token"),
           "Content-Type": "multipart/form-data",

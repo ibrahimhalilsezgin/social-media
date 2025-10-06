@@ -1,3 +1,4 @@
+import { PUBLIC_BACKEND_URL } from '$env/static/public';
 import axios from 'axios';
 
 export const load = async ({ locals, params, cookies }) => {
@@ -8,7 +9,7 @@ export const load = async ({ locals, params, cookies }) => {
   const token = cookies.get('token');
   if (token) {
     try {
-      const response = await axios.get('https://backend.ibo.rocks/getSelfInfo', {
+      const response = await axios.get(PUBLIC_BACKEND_URL + '/getSelfInfo', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -21,7 +22,7 @@ export const load = async ({ locals, params, cookies }) => {
 
   try {
     if(locals.user) {
-      const response = await axios.get('https://backend.ibo.rocks/getUserFromUsername', {
+      const response = await axios.get(PUBLIC_BACKEND_URL + '/getUserFromUsername', {
         data: { username: params.username }, 
         headers:{
           Authorization: 'Bearer ' + cookies.get('token')
@@ -31,7 +32,7 @@ export const load = async ({ locals, params, cookies }) => {
       console.log(response.data)
     user = response.data;
     } else {
-      const response = await axios.get('https://backend.ibo.rocks/getUserFromUsername', {
+      const response = await axios.get(PUBLIC_BACKEND_URL + '/getUserFromUsername', {
         data: { username: params.username }, 
 
       });

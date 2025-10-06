@@ -95,6 +95,7 @@ class postController {
             status:'başarılı',
         });
     };
+
     async getPostImage(req:Request, res:Response) {
         const { filename } = req.params;
         const currentUsername = req.user?.username || null;
@@ -112,10 +113,11 @@ class postController {
             return res.status(403).send("Bu kullanıcıya erişemezsin");
         }
 
-        return res.sendFile(`${__dirname}/uploads/${username}/${filename}`, (err) => {
+        return res.sendFile(`${__dirname}/uploads/${user.username}/${filename}`, (err) => {
             if (err) return res.status(404).send("Dosya bulunamadı");
         });
     };
+
     async getInfo(req:Request, res:Response) {
         const { filename } = req.params;
         const currentUsername = req.user?.username || null;
@@ -181,7 +183,7 @@ class postController {
     };
     async like(req: Request, res: Response) {
         const { filename } = req.body;
-
+        console.log(filename)
         const post = await postModel.findOne({ filename });
         if (!post) return res.status(404).send('Post bulunamadı.');
 

@@ -50,7 +50,7 @@
             });
             const info:Post = (await axios({
                 method:'GET',
-                url: `${PUBLIC_BACKEND_URL}/posts/getInfo/${data.user.username}/${post}`,
+                url: `${PUBLIC_BACKEND_URL}/posts/getInfo/${post}`,
                 headers:{
                     Authorization: 'Bearer ' + getCookie('token')
                 }
@@ -411,7 +411,7 @@
                 <div class="relative group">
                     <div class="w-32 h-32 lg:w-40 lg:h-40 rounded-full ring-4 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all duration-300 overflow-hidden">
                         <img 
-                            src="{data.user.profilePhoto}" 
+                            src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}" 
                             class="w-full h-full object-cover" 
                             alt="{data.user.username}"
                         >
