@@ -32,10 +32,10 @@
     }
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
+<div class="min-h-screen p-8">
     <div class="max-w-4xl mx-auto">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-slate-800 mb-2">Sohbetlerin</h1>
+        <h1 class="text-3xl font-bold mb-2">Sohbetlerin</h1>
         <!-- <p class="text-slate-600">Takip ettiğiniz {data.user.following.length} kişi</p> -->
     </div>
  <div class="grid gap-4">
@@ -101,10 +101,10 @@
             </div>
         {/if}
     </div>
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-4xl mx-auto pt-5">
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-slate-800 mb-2">Takip Ettiklerim</h1>
-            <p class="text-slate-600">Takip ettiğiniz {data.user.following.length} kişi</p>
+            <h1 class="text-3xl font-bold mb-2">Takip Ettiklerim</h1>
+            <p class="">Takip ettiğiniz {data.user.following.length} kişi</p>
         </div>
 
         <div class="grid gap-4">

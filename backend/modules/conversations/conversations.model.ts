@@ -20,6 +20,10 @@ const schema = new Schema({
             type:String,
             required: true,
             minLength:1
+        },
+        created: {
+            type:Date,
+            default: new Date()
         }
     }]
 });

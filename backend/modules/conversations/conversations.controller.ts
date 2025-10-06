@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { Conversation } from "./conversations.inferface";
 import conversationModel from "./conversations.model";
 import userModel from "../user/user.model";
 

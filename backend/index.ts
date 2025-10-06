@@ -87,6 +87,8 @@ io.on("connection", (socket) => {
           messages: {
             username: data.conversation.username,
             content: data.message,
+            created: new Date()
+
           },
         },
       }
@@ -96,6 +98,7 @@ io.on("connection", (socket) => {
     io.to(data.conversation.id).emit("createdMessage", {
       username: data.conversation.username,
       content: data.message,
+      created: new Date()
       
     });
   });

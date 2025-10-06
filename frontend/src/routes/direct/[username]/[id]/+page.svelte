@@ -141,7 +141,7 @@
     </div>
 
     <!-- Messages Area -->
-    <div bind:this={messagesContainer} class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 max-h-100
+    <div bind:this={messagesContainer} class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 
                                                                                                                                                   [&::-webkit-scrollbar]:w-2
                                                                                                                                                   [&::-webkit-scrollbar-track]:rounded-full
                                                                                                                                                   [&::-webkit-scrollbar-track]:bg-gray-100
@@ -157,7 +157,7 @@
                 <!-- Gönderilen Mesaj (Sağ) -->
                 <div class="flex justify-end items-end gap-2">
                   <span class="text-xs text-slate-500">
-                    {formatMessageTime(message.createdAt || new Date())}
+                    {formatMessageTime(message.created)}
                   </span>
                   <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl rounded-br-md px-5 py-3 max-w-md shadow-lg">
                     <p class="text-sm leading-relaxed">{message.content}</p>
@@ -175,7 +175,7 @@
                     <p class="text-sm text-slate-100 leading-relaxed">{message.content}</p>
                   </div>
                   <span class="text-xs text-slate-500">
-                    {formatMessageTime(message.createdAt || new Date())}
+                    {formatMessageTime(message.created)}
                   </span>
                 </div>
               {/if}

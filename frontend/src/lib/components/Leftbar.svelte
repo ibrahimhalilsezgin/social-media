@@ -330,7 +330,7 @@ $: if (browser && mode == 3 && user) {
         <div class="p-6 border-t border-slate-800">
             <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 transition-all duration-300 cursor-pointer group">
                 <div class="relative">
-                    <img src="{user.profilePhoto}" alt="" class="rounded-full w-12 h-12 object-cover ring-2 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all">
+                    <img src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{user.username}" alt="" class="rounded-full w-12 h-12 object-cover ring-2 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all">
                     <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900"></div>
                 </div>
                 <div class="flex-1 min-w-0">
