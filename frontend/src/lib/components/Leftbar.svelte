@@ -128,7 +128,7 @@ $: if (browser && mode == 3 && user) {
 
                 <button 
                     class="w-full group hover:bg-slate-800 h-14 text-lg items-center flex cursor-pointer gap-4 rounded-xl pl-6 transition-all duration-300 hover:translate-x-1"
-                    on:click={() => isOpen = false}
+                    on:click={() => goto('/direct')}
                 >
                     <i class="fa-solid fa-comment text-purple-400 group-hover:text-purple-300 transition-colors w-6"></i>
                     <span class="group-hover:text-white transition-colors">Mesajlar</span>
@@ -136,7 +136,7 @@ $: if (browser && mode == 3 && user) {
 
                 <button 
                     class="w-full group hover:bg-slate-800 h-14 text-lg items-center flex cursor-pointer gap-4 rounded-xl pl-6 transition-all duration-300 hover:translate-x-1"
-                    on:click={() => {mode = 2; isOpen = false;}}
+                    on:click={() => {mode = 2}}
                     >
                     <i class="fa-solid fa-bell text-purple-400 group-hover:text-purple-300 transition-colors w-6"></i>
                     <span class="group-hover:text-white transition-colors">Bildirimler</span>
@@ -145,7 +145,7 @@ $: if (browser && mode == 3 && user) {
                 <button 
                     class="w-full group hover:bg-slate-800 h-14 text-lg items-center flex cursor-pointer gap-4 rounded-xl pl-6 transition-all duration-300 hover:translate-x-1 relative" 
                     aria-label="Takip İstekleri" 
-                    on:click={() => {mode = 3; isOpen = false;}}
+                    on:click={() => {mode = 3;}}
                 >
                     <i class="fa-solid fa-user-plus text-purple-400 group-hover:text-purple-300 transition-colors w-6"></i>
                     <span class="group-hover:text-white transition-colors">Takip İstekleri</span>
@@ -171,7 +171,7 @@ $: if (browser && mode == 3 && user) {
         <div class="p-6 border-t border-slate-800">
             <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 transition-all duration-300 cursor-pointer group">
                 <div class="relative">
-                    <img src="{user.profilePhoto}" alt="" class="rounded-full w-12 h-12 object-cover ring-2 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all">
+                    <img src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{user.username}" alt="" class="rounded-full w-12 h-12 object-cover ring-2 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all">
                     <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900"></div>
                 </div>
                 <!-- svelte-ignore a11y_click_events_have_key_events -->

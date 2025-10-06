@@ -10,5 +10,5 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
-<!-- <Notification  /> -->
+<Notification  />
 {@render children?.()}

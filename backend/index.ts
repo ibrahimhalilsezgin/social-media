@@ -39,10 +39,14 @@ app.use(morgan('dev'));
 
 import userRouter from "./modules/user/user.router";
 import postRouter from "./modules/posts/post.router";
+import conversationRouter from "./modules/conversations/conversations.router";
+
 import { connectDB } from "./db/connect";
+import conversationsModel from "./modules/conversations/conversations.model";
 
 app.use('/', userRouter);
 app.use('/posts/', postRouter);
+app.use('/conversations/', conversationRouter);
 
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
@@ -55,12 +59,56 @@ io.use((socket, next) => {
   }
 });
 app.set("io", io)
+
+let onlineUsers = [];
+
+
 io.on("connection", (socket) => {
-    // console.log(socket)
   const username = socket.data.user.username;
-  socket.join(username); // kullanıcı kendi odasına
-  console.log(username, ' bildirim sistemine girdi')
+
+  if (!onlineUsers.includes(username)) {
+    onlineUsers.push(username);
+  }
+
+  socket.join(username);
+  io.emit('onlineUsers', onlineUsers);
+
+  // Kullanıcı odaya katılıyor
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+    console.log(`${username} joined room: ${roomId}`);
+  });
+
+  socket.on("messageCreate", async (data) => {
+    await conversationsModel.updateMany(
+      { id: data.conversation.id },
+      {
+        $push: {
+          messages: {
+            username: data.conversation.username,
+            content: data.message,
+          },
+        },
+      }
+    );
+
+    // Sadece ilgili odaya mesajı gönder
+    io.to(data.conversation.id).emit("createdMessage", {
+      username: data.conversation.username,
+      content: data.message,
+      
+    });
+  });
+
+  socket.on("disconnect", () => {
+    const index = onlineUsers.indexOf(username);
+    if (index !== -1) {
+      onlineUsers.splice(index, 1);
+    }
+    io.emit("onlineUsers", onlineUsers);
+  });
 });
+
 
 
 

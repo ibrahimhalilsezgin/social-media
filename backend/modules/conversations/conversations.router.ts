@@ -1,6 +1,6 @@
 import { Request, Router } from "express";
 import { authenticateToken } from "../../middleware/authentication";
-import postController from "./messages.controller";
+import conversationsController from "./conversations.controller";
 import multer from "multer";
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -14,6 +14,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 const router = Router();
 
+
+router.get('/getChat/:username/:id', authenticateToken, conversationsController.getChat)
+router.get('/getConversations', authenticateToken, conversationsController.getUserConversations)
+router.post('/createConversation', authenticateToken, conversationsController.createConversation)
 
 
 export default router;

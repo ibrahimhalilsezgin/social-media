@@ -1,33 +1,34 @@
 <script>
-    // import { io } from "socket.io-client";
-	// import { getCookie } from "$lib/utils/cookies.util";
-    // import { browser } from "$app/environment";
+    import { io } from "socket.io-client";
+	import { getCookie } from "$lib/utils/cookies.util";
+    import { browser } from "$app/environment";
+	import { PUBLIC_BACKEND_URL } from "$env/static/public";
 
-    // const socket = io(PUBLIC_BACKEND_URL, {
-    //     auth: { token: getCookie('token') }
-    // });
-    // console.log(socket)
+    const socket = io(PUBLIC_BACKEND_URL, {
+        auth: { token: getCookie('token') }
+    });
+    console.log(socket)
 
 
-    // if(browser) {
-    //         socket.on("notification", (data) => {
-    //             new Notification(data.title, {
-    //                 body: data.content,
-    //             })
-    //         });
-    //     if("Notification" in window) {
-    //         Notification.requestPermission().then(permission => {
-    //             if(permission === "granted") {
-    //                 console.log('Bildirim izni verildi.!');
-    //             } else {
-    //                 console.log('Bildirim izni reddedildi.')
-    //             }
-    //         })
-    //     } else {
-    //         console.log('Tarayıcı bildirimleri desteklemiyor');
-    //     }
+    if(browser) {
+            socket.on("notification", (data) => {
+                new Notification(data.title, {
+                    body: data.content,
+                })
+            });
+        if("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if(permission === "granted") {
+                    console.log('Bildirim izni verildi.!');
+                } else {
+                    console.log('Bildirim izni reddedildi.')
+                }
+            })
+        } else {
+            console.log('Tarayıcı bildirimleri desteklemiyor');
+        }
 
-    // }
+    }
 
 
 

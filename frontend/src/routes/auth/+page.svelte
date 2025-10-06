@@ -1,4 +1,4 @@
-<script lang="ts">
+    <script lang="ts">
     import axios from "axios";
     import { setCookie } from "$lib/utils/cookies.util";
     import { goto } from "$app/navigation";
