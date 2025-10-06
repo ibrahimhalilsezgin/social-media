@@ -85,7 +85,7 @@
 
 <div class="flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 z-40">
   <!-- Sol sidebar -->
-  <aside class="w-64 border-r border-slate-700 overflow-y-auto z-50">
+  <aside class="w-64 border-r border-slate-700 overflow-y-auto z-50 ">
     <Leftbar user={data.user} />
   </aside>
 
@@ -141,7 +141,14 @@
     </div>
 
     <!-- Messages Area -->
-    <div bind:this={messagesContainer} class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800">
+    <div bind:this={messagesContainer} class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 max-h-100
+                                                                                                                                                  [&::-webkit-scrollbar]:w-2
+                                                                                                                                                  [&::-webkit-scrollbar-track]:rounded-full
+                                                                                                                                                  [&::-webkit-scrollbar-track]:bg-gray-100
+                                                                                                                                                  [&::-webkit-scrollbar-thumb]:rounded-full
+                                                                                                                                                  [&::-webkit-scrollbar-thumb]:bg-gray-300
+                                                                                                                                                  dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                                                                                                                                                  dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
       <div class="max-w-5xl mx-auto px-6 py-6">
         {#if messages && messages.length > 0}
           <div class="space-y-4">

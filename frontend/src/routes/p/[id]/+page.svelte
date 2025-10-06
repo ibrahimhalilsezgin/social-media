@@ -102,7 +102,14 @@ loading = true
                         </button>
                     </div>
 
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4 max-h-100 
+                    [&::-webkit-scrollbar]:w-2
+                    [&::-webkit-scrollbar-track]:rounded-full
+                    [&::-webkit-scrollbar-track]:bg-gray-100
+                    [&::-webkit-scrollbar-thumb]:rounded-full
+                    [&::-webkit-scrollbar-thumb]:bg-gray-300
+                    dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                    dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
                         {#if selectedPost.description}
                             <div class="flex gap-3 border-b border-gray-600 pb-2">
                                 <div class="flex-1">

@@ -182,12 +182,20 @@
 <!-- Scroll Container -->
 <div 
   
-  class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-xl border border-slate-700/50 p-4 overflow-x-auto"
+  class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-xl border border-slate-700/50 p-4 overflow-x-auto max-h-100 
+  [&::-webkit-scrollbar]:w-2  
+  [&::-webkit-scrollbar]:h-1
+  [&::-webkit-scrollbar-track]:rounded-full
+  [&::-webkit-scrollbar-track]:bg-gray-100
+  [&::-webkit-scrollbar-thumb]:rounded-full
+  [&::-webkit-scrollbar-thumb]:bg-gray-300
+  dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+  dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
 >
-  <div class="flex gap-4 w-max">
+  <div class="flex gap-4 w-max ">
     <!-- Örnek kullanıcı avatarları -->
     <!-- Bunu dinamik olarak çoğaltabilirsin -->
-    <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0">
+    <div class="p-[2px] rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-pink-500 shrink-0 ">
       <img 
         src="{PUBLIC_BACKEND_URL}/getUserProfilePhoto/{data.user.username}"
         alt="username1" 

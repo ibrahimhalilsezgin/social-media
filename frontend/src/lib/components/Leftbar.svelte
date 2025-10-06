@@ -211,7 +211,14 @@ $: if (browser && mode == 3 && user) {
         </div>
 
         <!-- İstekler Listesi -->
-        <div class="flex-1 gap-10 overflow-y-auto px-4 py-6">
+        <div class="flex-1 gap-10 overflow-y-auto px-4 py-6
+                                                            [&::-webkit-scrollbar]:w-2
+                                                            [&::-webkit-scrollbar-track]:rounded-full
+                                                            [&::-webkit-scrollbar-track]:bg-gray-100
+                                                            [&::-webkit-scrollbar-thumb]:rounded-full
+                                                            [&::-webkit-scrollbar-thumb]:bg-gray-300
+                                                            dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                                                            dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
             {#each user.notifications as notification }
 
                 <div class="flex gap-4 flex-col">
@@ -257,7 +264,14 @@ $: if (browser && mode == 3 && user) {
         </div>
 
         <!-- İstekler Listesi -->
-        <div class="flex-1 overflow-y-auto px-4 py-6">
+        <div class="flex-1 overflow-y-auto px-4 py-6 max-h-100
+                                                            [&::-webkit-scrollbar]:w-2
+                                                            [&::-webkit-scrollbar-track]:rounded-full
+                                                            [&::-webkit-scrollbar-track]:bg-gray-100
+                                                            [&::-webkit-scrollbar-thumb]:rounded-full
+                                                            [&::-webkit-scrollbar-thumb]:bg-gray-300
+                                                            dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+                                                            dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
             {#if requests.length <= 0}
                 <div class="flex flex-col items-center justify-center h-full text-center px-4">
                     <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-4">
