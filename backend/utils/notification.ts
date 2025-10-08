@@ -1,24 +1,40 @@
 import userModel from "../modules/user/user.model";
 
-
-export const sendNotification = async (req:any, username:string, options={title:'', content:'', url: ''}) => {
-    const io = req.app.get("io");
-    
-    io.to(username).emit("notification", {
-        title:options.title,
-        content: options.content,
-        url: options.url 
-    });
-
-    await userModel.findOneAndUpdate(
-        { username: username },
-        {
-            $push: {
-                notifications: {
-                    title:options.title,
-                    content: options.content,
-                    url: options.url, 
-                }
-            }
-    });
+interface NotificationOptions {
+  title: string;
+  content?: string;
+  url?: string;
+  image?: string; 
+  socket?: any;
 }
+
+export const sendNotification = async (
+  req: any,
+  username: string,
+  options: NotificationOptions = {
+    title:''
+  }
+) => {
+  const io = options.socket || req.app.get("io");
+
+  io.to(username).emit("notification", {
+    title: options.title || "",
+    content: options.content || "",
+    url: options.url || "",
+    image: options.image || "",
+  });
+
+  await userModel.findOneAndUpdate(
+    { username },
+    {
+      $push: {
+        notifications: {
+          title: options.title,
+          content: options.content || "",
+          url: options.url || "",
+          ...(options.image && { image: options.image }), 
+        },
+      },
+    }
+  );
+};

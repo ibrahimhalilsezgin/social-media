@@ -3,9 +3,21 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import Notification from '$lib/components/Notification.svelte';
 	import { onMount } from 'svelte';
+	import axios from 'axios';
+	import { PUBLIC_BACKEND_URL } from '$env/static/public';
 	let { children } = $props();
 	let loading = $state(true);
-	onMount(() => {
+    let backend = $state(true);
+	onMount(async () => {
+        try {
+            await axios({
+                method:'get',
+                url:PUBLIC_BACKEND_URL
+            });
+        } catch (err)
+        {
+            backend = false
+        }
 		setTimeout(() => {
 			loading = false
 		},500)
@@ -16,13 +28,15 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 <Notification  />
-{#if loading}
-	<div class="h-screen flex items-center justify-center">
-		<span class="loader"></span>
-	</div>
-{:else}
-	{@render children?.()}
-
+{#if backend}
+    {#if loading}
+        <div class="h-screen flex items-center justify-center">
+            <span class="loader"></span>
+        </div>
+    {:else}
+        {@render children?.()}
+    {/if}
+    {:else}
 {/if}
 
 <style>

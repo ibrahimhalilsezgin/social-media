@@ -7,42 +7,35 @@
 
     let messageInput = '';
     let messages = data.conversations.messages;
-    let messagesContainer;
+    let messagesContainer:HTMLDivElement;
     let onlineUsers: any[] = [];
 
-    // Konuşma ortağı
     const chatPartner = data.conversations.username === data.user.username 
         ? data.conversations.with 
         : data.conversations.username;
 
-    // Online kullanıcıları dinle
     socket?.on('onlineUsers', (response: any) => {
         console.log('Online users received:', response);
         onlineUsers = response;
     });
 
-    // Odaya katıl
     socket?.emit("joinRoom", data.conversations.id);
 
-    // Mesajları dinle
     socket?.on("createdMessage", (data) => {
         console.log("Yeni mesaj:", data);
         messages = [...messages, data];
     });
 
-    // Otomatik scroll fonksiyonu
     function scrollToBottom() {
         if (messagesContainer) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     }
 
-    // Yeni mesaj geldiğinde scroll
     $: if (messages) {
         setTimeout(scrollToBottom, 100);
     }
 
-    // Kullanıcı online mı kontrolü
     $: isOnline = onlineUsers.some(user => {
         if (typeof user === 'object' && user !== null) {
             return user.username === chatPartner || user.name === chatPartner || user.id === chatPartner;
@@ -50,21 +43,21 @@
         return user === chatPartner;
     });
 
-    // Mesaj gönder
     function sendMessage() {
+
         if (messageInput.trim()) {
             socket?.emit('messageCreate', {
                 conversation: data.conversations,
                 message: messageInput,
-                sendedFrom: data.user
+                sendedFrom: data.user,
+                sendedTo: data.conversations.username
             });
             console.log('Mesaj gönderildi:', messageInput);
             messageInput = '';
         }
     }
     
-    // Enter tuşu ile gönder
-    function handleKeyPress(event) {
+    function handleKeyPress(event:any) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             sendMessage();

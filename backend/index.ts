@@ -44,11 +44,12 @@ import conversationRouter from "./modules/conversations/conversations.router";
 import { connectDB } from "./db/connect";
 import conversationsModel from "./modules/conversations/conversations.model";
 import settingsModel from "./modules/admin/settings/settings.model";
+import { sendNotification } from "./utils/notification";
 
 app.use('/', userRouter);
 app.use('/posts/', postRouter);
 app.use('/conversations/', conversationRouter);
-
+app.get('/', (req, res) => res.send(200))
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   try {
@@ -61,33 +62,38 @@ io.use((socket, next) => {
 });
 app.set("io", io)
 
-let onlineUsers = [];
-
-
+let onlineUsers = new Map();
 
 io.on("connection", async (socket) => {
   const ip = getClientIpFromSocket(socket);
   const geo = geoip.lookup(ip);
-  const country = geo?.country || 'Unknown';
-
+  const country = geo?.country || "Unknown";
   await addAccessCountry(ip, country);
 
-
-  const username = socket.data.user.username;
-
-  if (!onlineUsers.includes(username)) {
-    onlineUsers.push(username);
+  const username = socket.data?.user?.username;
+  if (!username) {
+    socket.disconnect();
+    return;
   }
 
-  socket.join(username);
-  io.emit('onlineUsers', onlineUsers);
+  // if (onlineUsers.has(username)) {
+  //   const oldSocketId = onlineUsers.get(username);
+  //   const oldSocket = io.sockets.sockets.get(oldSocketId);
+  //   if (oldSocket) oldSocket.disconnect(true);
+  // }
 
-  // Kullanıcı odaya katılıyor
+  // onlineUsers.set(username, socket.id);
+  socket.join(username);
+
+  io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+
+  // Odaya katılma
   socket.on("joinRoom", (roomId) => {
     socket.join(roomId);
     console.log(`${username} joined room: ${roomId}`);
   });
 
+  // Mesaj oluşturma
   socket.on("messageCreate", async (data) => {
     await conversationsModel.updateMany(
       { id: data.conversation.id },
@@ -96,30 +102,38 @@ io.on("connection", async (socket) => {
           messages: {
             username: data.conversation.username,
             content: data.message,
-            created: new Date()
-
+            created: new Date(),
           },
         },
       }
     );
 
-    // Sadece ilgili odaya mesajı gönder
+    sendNotification(io, data.conversation.with, {
+      title: "Yeni mesaj aldın.",
+      content: "Mesaj aldın",
+      url: `/direct/${data.conversation.username}/${data.conversation.id}`,
+      image: `http://${process.env.domain}${
+        process.env.PORT ? ":" + process.env.PORT : ""
+      }/getUserProfilePhoto/${data.conversation.username}`,
+      socket: io,
+    });
+
     io.to(data.conversation.id).emit("createdMessage", {
       username: data.conversation.username,
       content: data.message,
-      created: new Date()
-      
+      created: new Date(),
     });
   });
 
+  // Bağlantı kopunca listeden kaldır
   socket.on("disconnect", () => {
-    const index = onlineUsers.indexOf(username);
-    if (index !== -1) {
-      onlineUsers.splice(index, 1);
+    if (onlineUsers.get(username) === socket.id) {
+      onlineUsers.delete(username);
+      io.emit("onlineUsers", Array.from(onlineUsers.keys()));
     }
-    io.emit("onlineUsers", onlineUsers);
   });
 });
+
 function getClientIpFromSocket(socket) {
   const headers = socket.handshake?.headers || {};
 
