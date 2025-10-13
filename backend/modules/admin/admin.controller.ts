@@ -51,6 +51,11 @@ class settingsController {
                     { $pull: { comments: { username: usernameToDelete } } },
                     { session }
                 );
+                await postModel.updateMany(
+                    { likes: usernameToDelete },
+                    { $pull: { comments: { username: usernameToDelete } } },
+                    { session }
+                );
 
                 await postModel.deleteMany({ account_id: userToDelete._id }, { session });
                 await conversationsModel.deleteOne({ username: usernameToDelete }, { session });
