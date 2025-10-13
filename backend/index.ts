@@ -39,16 +39,19 @@ app.use(morgan('dev'));
 
 import userRouter from "./modules/user/user.router";
 import postRouter from "./modules/posts/post.router";
+import adminRouter from "./modules/admin/admin.router";
 import conversationRouter from "./modules/conversations/conversations.router";
 
 import { connectDB } from "./db/connect";
 import conversationsModel from "./modules/conversations/conversations.model";
-import settingsModel from "./modules/admin/settings/settings.model";
+import settingsModel from "./modules/admin/admin.model";
 import { sendNotification } from "./utils/notification";
 
 app.use('/', userRouter);
 app.use('/posts/', postRouter);
 app.use('/conversations/', conversationRouter);
+app.use('/admin/', adminRouter);
+
 app.get('/', (req, res) => res.send(200))
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;

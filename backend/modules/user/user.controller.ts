@@ -13,9 +13,10 @@ class userController {
         if(!username || !email || !password) return res.status(403).send('Tüm boşluklar doldurulmalıdır.');
 
         if(await userModel.findOne({ username })) return res.status(409).send('Kullanıcı adı halihazırda kullanılmaktadır.');
+        if(username.length < 3 || username.length > 32) return res.status(422).send('Kullanıcı adınız minimum 3 maksimum 32 karakter uzunluğunda olmalıdır.');
         if(await userModel.findOne({ email })) return res.status(409).send('Bu e-posta halihazırda kullanılmaktadır.');
+        if(!isValidEmail(email)) return res.status(409).send('Geçerli bir e-posta girin.');
         if(password.length < 6) return res.status(422).send('Şifreniz minimum 6 harf/sayı/işaret içermelidir.');
-
 
         const hashedPassword = hashSync(password,10);
         let id = `${(await userModel.find({})).length}${username.length}${Math.floor(email.length * 0.75)}${Math.floor(Math.random() * 999999999) + 1}`;
@@ -34,11 +35,12 @@ class userController {
     };
     async SigIn(req:Request, res:Response) {
       let {input, password} = req.body;
-
       const IPAddress = req.ip?.toString()
 
+      if(!input || !password) return res.status(403).send('Tüm Boşluklar Doldurulmalıdır.');
+
       if(isValidEmail(input)) {
-          const user:any = await userModel.findOne({ email: input });
+          const user = await userModel.findOne({ email: input });
           if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
           if(!compareSync(password, user.password)) return res.status(403).send('Üzgünüz, şifren yanlıştı. Lütfen şifreni dikkatlice kontrol et.');
           
@@ -50,7 +52,7 @@ class userController {
             token: token
           });
       } else {
-          const user:any = await userModel.findOne({ username: input });
+          const user = await userModel.findOne({ username: input });
           if(!user) return res.status(404).send('Kullanıcı bulunamadı.');
           if(!compareSync(password, user.password)) return res.status(403).send('Üzgünüz, şifren yanlıştı. Lütfen şifreni dikkatlice kontrol et.');
           
@@ -63,7 +65,6 @@ class userController {
           });
       }
     };
-
     async getUser(req:Request, res:Response) {
       const {id}:User = req.user;
 

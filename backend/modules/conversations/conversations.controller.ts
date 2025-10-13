@@ -16,7 +16,7 @@ class conversationsController {
         const conversation = await conversationModel.findOne({ with:username, id: id});
 
         if(!conversation) return res.status(404).send('Sohbet bulunamadı.');
-
+        
         return res.status(200).json(conversation)
     }
     async createConversation(req:Request, res:Response) {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import settingsModel from "../modules/admin/settings/settings.model";
+import settingsModel from "../modules/admin/admin.model";
 
 
 export const connectDB = async () => {

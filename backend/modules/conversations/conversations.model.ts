@@ -25,7 +25,11 @@ const schema = new Schema({
             type:Date,
             default: new Date()
         }
-    }]
+    }],
+    isOld: {
+        type: Boolean,
+        default: false
+    }
 });
 
 export default model('conversation', schema);   

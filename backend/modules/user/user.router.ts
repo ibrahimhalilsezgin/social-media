@@ -1,8 +1,6 @@
 import {Router, Request} from "express";
 import userController from "./user.controller";
 import {authenticateToken,optionalAuthenticateToken} from "../../middleware/authentication"
-import { createAccountValidation, signInValidation } from "../../validations/userValidation";
-import { validateRequest } from "../../middleware/validation";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -27,8 +25,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.post('/signup', createAccountValidation, validateRequest, userController.createAccount);
-router.post('/signin', signInValidation, validateRequest, userController.SigIn);
+router.post('/signup', userController.createAccount);
+router.post('/signin', userController.SigIn);
 router.post('/acceptFollowRequest', authenticateToken, userController.acceptFollowRequest);
 router.post('/declineFollowRequest', authenticateToken, userController.declineFollowRequest);
 router.post('/cancelFollowRequest', authenticateToken, userController.cancelFollowRequest);
