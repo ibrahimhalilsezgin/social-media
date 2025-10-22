@@ -5,6 +5,7 @@ import conversationsModel from "../conversations/conversations.model";
 import fs from "fs/promises"
 import path from "path";
 import mongoose from "mongoose";
+import { sendNotification } from "../../utils/notification";
 
 
 const FEATURE_MAP = {
@@ -113,8 +114,42 @@ class settingsController {
                     user_blocked_features: featureName
                 }
             },  { new: true });
-
+            sendNotification(req, username, {
+                title:'Kısıtlama Aldın',
+                content: `${featureName} özelliği engellendi.`,
+                
+            })
             return res.status(200).send(`'${featureName}' özelliği başarıyla engellendi.`);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+    async unrestrict(req:Request, res: Response) {
+        const { username, feature } = req.body;
+
+        const user = await userModel.findOne({ username: username });
+
+        if(!user) return res.status(404).send('Kullanıcı Bulunamadı.');
+
+        const featureName = FEATURE_MAP[feature];
+
+
+        if (!featureName) {
+            return res.status(400).send('Geçersiz Özellik Kodu.');
+        };
+        
+        try {
+            await userModel.findOneAndUpdate({ username }, {
+                $pull: {
+                    user_blocked_features: featureName
+                }
+            },  { new: true });
+            sendNotification(req, username, {
+                title:'Kısıtlaman Kaldırıldı',
+                content: `${featureName} özelliğin tekrardan kullanılabilir.`,
+                
+            })
+            return res.status(200).send(`'${featureName}' özelliği tekrardan kullanılabilir.`);
         } catch (err) {
             console.log(err);
         }

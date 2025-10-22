@@ -46,6 +46,7 @@ import { connectDB } from "./db/connect";
 import conversationsModel from "./modules/conversations/conversations.model";
 import settingsModel from "./modules/admin/admin.model";
 import { sendNotification } from "./utils/notification";
+import userModel from "./modules/user/user.model";
 
 app.use('/', userRouter);
 app.use('/posts/', postRouter);
@@ -98,6 +99,9 @@ io.on("connection", async (socket) => {
 
   // Mesaj oluşturma
   socket.on("messageCreate", async (data) => {
+    const user = await userModel.findOne({  username: data.conversation.username });
+
+    if(user.user_blocked_features.includes('sendMessage')) return;
     await conversationsModel.updateMany(
       { id: data.conversation.id },
       {

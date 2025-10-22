@@ -18,7 +18,9 @@
 
     let selectedUser: any = null;
     let showRestrictionModal = false;
+    let showRemoveRestrictionModal = false;
     let selectedFeature = 'sendMessage';
+    let selectedRemoveFeature = '0';
 
     async function deleteUser(username: string) {
         try {
@@ -84,7 +86,8 @@
                 method: 'post',
                 url: `${PUBLIC_BACKEND_URL}/admin/unrestrict`,
                 data: {
-                    username: selectedUser.username
+                    username: selectedUser.username,
+                    feature: selectedRemoveFeature
                 },
                 headers: {
                     Authorization: 'Bearer ' + getCookie('token')
@@ -94,6 +97,7 @@
             if(response.status == 200) {
                 success.status = true;
                 success.message = 'Kısıtlama başarıyla kaldırıldı';
+                showRemoveRestrictionModal = false;
                 setTimeout(function(){ success.status = false}, 5000);
             }
         } catch(err: any) {
@@ -125,6 +129,12 @@
         }
     }
 
+    function closeRemoveRestrictionModal(e: MouseEvent) {
+        if (e.target === e.currentTarget) {
+            showRemoveRestrictionModal = false;
+        }
+    }
+
     const featureNames: Record<string, string> = {
         sendMessage: 'Mesaj Gönderme',
         sendPost: 'Post Gönderme',
@@ -132,6 +142,71 @@
         sendStory: 'Story Gönderme'
     };
 </script>
+
+<!-- Kısıtlama Kaldırma Modal -->
+{#if showRemoveRestrictionModal}
+    <div 
+        class="h-screen w-screen bg-black/70 backdrop-blur-sm justify-center items-center flex fixed top-0 left-0 z-[60]"
+        on:click={closeRemoveRestrictionModal}
+        transition:fade={{ duration: 200 }}
+    >
+        <div 
+            class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-600 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4"
+            on:click|stopPropagation
+        >
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                    ✅ Kısıtlama Kaldır
+                </h2>
+                <button 
+                    class="text-gray-400 hover:text-white transition-colors text-2xl"
+                    on:click={() => showRemoveRestrictionModal = false}
+                >
+                    ✕
+                </button>
+            </div>
+
+            <div class="mb-6 bg-green-900/30 rounded-lg p-4 border border-green-700">
+                <p class="text-gray-300 text-sm mb-2">
+                    <span class="font-semibold text-white">{selectedUser?.username}</span> kullanıcısının seçili özellik kısıtlaması kaldırılacak.
+                </p>
+                <p class="text-gray-400 text-xs">
+                    Kullanıcı seçilen özelliğe tekrar erişim kazanacaktır.
+                </p>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-300 font-medium mb-3">
+                    Kaldırılacak Kısıtlama:
+                </label>
+                <select 
+                    bind:value={selectedRemoveFeature}
+                    class="w-full bg-gray-800 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 transition-colors cursor-pointer"
+                >
+                    <option value="0">📨 Mesaj Gönderme</option>
+                    <option value="1">📝 Post Gönderme</option>
+                    <option value="2">💬 Yorum Gönderme</option>
+                    <option value="3">📷 Story Gönderme</option>
+                </select>
+            </div>
+
+            <div class="flex gap-3">
+                <button 
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200"
+                    on:click={() => showRemoveRestrictionModal = false}
+                >
+                    İptal
+                </button>
+                <button 
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-green-600/30"
+                    on:click={removeRestriction}
+                >
+                    Kaldır
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
 
 <!-- Kısıtlama Modal -->
 {#if showRestrictionModal}
@@ -278,11 +353,7 @@
                         
                         <button 
                             class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-green-600/30 hover:scale-[1.02]"
-                            on:click={() => {
-                                if (confirm(`${selectedUser.username} kullanıcısının kısıtlamalarını kaldırmak istediğinizden emin misiniz?`)) {
-                                    removeRestriction();
-                                }
-                            }}
+                            on:click={() => showRemoveRestrictionModal = true}
                         >
                             ✅ Kısıtlama Kaldır
                         </button>
