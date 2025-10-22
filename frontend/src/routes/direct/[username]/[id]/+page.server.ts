@@ -13,7 +13,7 @@ export const load = async ({ locals, cookies, params }) => {
     });
 
     return {        
-        conversations: response.data,
+        conversation: response.data,
         user: locals.user
     };
 };

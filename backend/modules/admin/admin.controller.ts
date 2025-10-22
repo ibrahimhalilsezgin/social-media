@@ -5,6 +5,15 @@ import conversationsModel from "../conversations/conversations.model";
 import fs from "fs/promises"
 import path from "path";
 import mongoose from "mongoose";
+
+
+const FEATURE_MAP = {
+    0: "sendMessage",
+    1: "sendPost",
+    2: "sendComment",
+    3: "sendStory"
+};
+
 class settingsController {
     async stats(req:Request, res:Response) {
         const users = await userModel.find({});
@@ -59,7 +68,7 @@ class settingsController {
 
                 await postModel.deleteMany({ account_id: userToDelete._id }, { session });
                 await conversationsModel.deleteOne({ username: usernameToDelete }, { session });
-                await conversationsModel.findOneAndUpdate({ username: usernameToDelete }, {isOld: true} ,{ session });
+                await conversationsModel.findOneAndUpdate({ with: usernameToDelete }, {isOld: true} ,{ session });
                 await userModel.deleteOne({ username: usernameToDelete }, { session });
 
                 profilePhotoPath = path.join('./profilePhotos/', userToDelete.username + '.jpeg');
@@ -82,6 +91,33 @@ class settingsController {
             await session.endSession();
             res.status(500).send('Sunucu kaynaklı bir sorun oluştu.');
         }
+    };
+
+    async restrict(req:Request, res: Response) {
+        const { username, feature } = req.body;
+
+        const user = await userModel.findOne({ username: username });
+
+        if(!user) return res.status(404).send('Kullanıcı Bulunamadı.');
+
+        const featureName = FEATURE_MAP[feature];
+
+
+        if (!featureName) {
+            return res.status(400).send('Geçersiz Özellik Kodu.');
+        };
+        
+        try {
+            await userModel.findOneAndUpdate({ username }, {
+                $addToSet: {
+                    user_blocked_features: featureName
+                }
+            },  { new: true });
+
+            return res.status(200).send(`'${featureName}' özelliği başarıyla engellendi.`);
+        } catch (err) {
+            console.log(err);
+        }
     }
 }
-export default new settingsController()
+export default new settingsController();

@@ -89,7 +89,11 @@ const schema = new Schema({
             category: { type: String, required: true },
             count: { type: Number, default: 0 }
         }
-    ]
-
+    ],
+    blocks:[],
+    user_blocked_features:[{
+        type:String,
+        enum:["sendMessage", "sendPost", "sendComment", "sendStory"]
+    }]
 });
 export default model('user', schema);

@@ -21,4 +21,4 @@ export const load = async ({ locals, cookies }) => {
     } catch (err) {
         redirect(303, '/');
     }
-};
+}; 

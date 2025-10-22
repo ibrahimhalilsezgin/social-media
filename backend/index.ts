@@ -119,13 +119,15 @@ io.on("connection", async (socket) => {
         process.env.PORT ? ":" + process.env.PORT : ""
       }/getUserProfilePhoto/${data.conversation.username}`,
       socket: io,
-    });
+    }).finally(() => {
 
-    io.to(data.conversation.id).emit("createdMessage", {
-      username: data.conversation.username,
-      content: data.message,
-      created: new Date(),
-    });
+      io.to(data.conversation.id).emit("createdMessage", {
+        username: data.conversation.username,
+        content: data.message,
+        created: new Date(),
+      });
+    })
+
   });
 
   // Bağlantı kopunca listeden kaldır

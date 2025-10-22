@@ -1,4 +1,5 @@
 import { PUBLIC_BACKEND_URL } from '$env/static/public';
+import { redirect } from '@sveltejs/kit';
 import axios from 'axios';
 
 export const load = async ({ locals, params, cookies }) => {
@@ -43,7 +44,7 @@ export const load = async ({ locals, params, cookies }) => {
       console.log(e);
 
   }
-
+  if(!user) return redirect(302, '/')
   if (!locals.user) {
     return {
       usr: null,

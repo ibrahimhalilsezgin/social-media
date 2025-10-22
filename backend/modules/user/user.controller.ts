@@ -22,7 +22,7 @@ class userController {
         let id = `${(await userModel.find({})).length}${username.length}${Math.floor(email.length * 0.75)}${Math.floor(Math.random() * 999999999) + 1}`;
         new userModel({
           id,
-          username,
+          username: username.toLocaleLowerCase(),
           email,
           password: hashedPassword
         }).save();

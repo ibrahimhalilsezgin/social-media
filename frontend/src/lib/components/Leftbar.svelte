@@ -106,7 +106,7 @@ $: if (browser && mode == 3 && user) {
                     bind:value={search}
                 > 
                 <button 
-                    on:click={() => {goto('/' + search); isOpen = false;}} 
+                    on:click={() => {goto('/u/' + search); isOpen = false;}} 
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-300 transition-colors"
                     aria-label="Ara"
                 >

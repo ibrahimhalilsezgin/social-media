@@ -6,20 +6,20 @@
     import { onMount } from 'svelte';
 
     let messageInput = '';
-    let messages = data.conversations.messages;
+    let messages = data.conversation.messages;
     let messagesContainer:HTMLDivElement;
     let onlineUsers: any[] = [];
 
-    const chatPartner = data.conversations.username === data.user.username 
-        ? data.conversations.with 
-        : data.conversations.username;
+    const chatPartner = data.conversation.username === data.user.username 
+        ? data.conversation.with 
+        : data.conversation.username;
 
     socket?.on('onlineUsers', (response: any) => {
         console.log('Online users received:', response);
         onlineUsers = response;
     });
 
-    socket?.emit("joinRoom", data.conversations.id);
+    socket?.emit("joinRoom", data.conversation.id);
 
     socket?.on("createdMessage", (data) => {
         console.log("Yeni mesaj:", data);
@@ -47,10 +47,10 @@
 
         if (messageInput.trim()) {
             socket?.emit('messageCreate', {
-                conversation: data.conversations,
+                conversation: data.conversation,
                 message: messageInput,
                 sendedFrom: data.user,
-                sendedTo: data.conversations.username
+                sendedTo: data.conversation.username
             });
             console.log('Mesaj gönderildi:', messageInput);
             messageInput = '';
@@ -251,4 +251,3 @@
     background: #64748b;
   }
 </style>
-
